@@ -1,5 +1,16 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Setup
+
+This app supports monorepo-style env loading:
+1. Root-level `/.env.local`
+2. App-level `apps/web/.env.local` (overrides root values)
+
+Start from `apps/web/.env.example` and provide required keys, especially:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (server-only)
+
 ## Getting Started
 
 First, run the development server:
@@ -15,6 +26,35 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Smoke Check (Protected Routes)
+
+Run the unauthenticated protected-route smoke check:
+
+```bash
+npm run smoke:protected-routes
+```
+
+Optional overrides:
+- PowerShell example:
+```powershell
+$env:SMOKE_BASE_URL = "http://localhost:3001"
+npm run smoke:protected-routes
+```
+- `SMOKE_EXPECTED_PATH_PREFIX` defaults to `/auth/sign-in`
+- `SMOKE_TIMEOUT_MS` defaults to `15000`
+
+## CI Gate
+
+GitHub Actions workflow: `.github/workflows/ci.yml`
+
+Pipeline jobs:
+1. `Quality Gates`: install, type-check, lint, unit tests
+2. `Smoke Protected Routes`: starts app, runs `npm run smoke:protected-routes`
+
+Required repository secrets for smoke job:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
