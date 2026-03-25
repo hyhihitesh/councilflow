@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "inhumans.io",
+  title: "CouncilFlow",
   description: "AI-native business development platform for law firms.",
 };
 
