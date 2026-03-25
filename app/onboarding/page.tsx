@@ -43,25 +43,32 @@ export default async function OnboardingPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#060911] text-[#F1F5F9]">
-      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col justify-center px-4 py-12 sm:px-6 sm:py-16">
-        <p className="text-xs uppercase tracking-[0.2em] text-[#94A3B8]">
-          Onboarding
-        </p>
-        <h1 className="mt-3 text-4xl font-semibold leading-tight">
-          Set up your firm workspace.
-        </h1>
-        <p className="mt-4 max-w-xl text-[#94A3B8]">
-          This creates your first firm and saves your initial practice profile,
-          ICP, and voice preferences.
-        </p>
+    <div className="min-h-screen bg-[#FDFCFB] text-[#2C2A26] font-sans selection:bg-[#E2DECF] selection:text-[#2C2A26] relative">
+      {/* Subtle top gradient */}
+      <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-[#EFECE5]/60 to-transparent pointer-events-none"></div>
+      
+      <main className="mx-auto flex min-h-screen w-full max-w-[800px] flex-col items-center justify-center px-6 py-16 relative z-10">
+        <div className="w-full text-center mb-10">
+          <p className="text-[11px] font-semibold tracking-[0.25em] text-[#A19D94] uppercase mb-4">
+            CouncilFlow Onboarding
+          </p>
+          <h1 className="text-[2.5rem] md:text-[3rem] font-light tracking-[-0.01em] text-[#2C2A26] leading-[1.1] font-display mb-4">
+            Establish your firm.
+          </h1>
+          <p className="text-[17px] text-[#716E68] font-light leading-relaxed max-w-xl mx-auto">
+            Design your workspace, define your ideal client profile, and tune the AI voice to perfectly align with your firm's professional standards.
+          </p>
+        </div>
 
-        <OnboardingForm
-          error={params.error}
-          action={completeOnboardingAction}
-          initialStep={getStepFromSearchParam(params.step)}
-        />
+        <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-1000 ease-out">
+          <OnboardingForm
+            error={params.error}
+            action={completeOnboardingAction}
+            initialStep={getStepFromSearchParam(params.step)}
+          />
+        </div>
       </main>
     </div>
   );
 }
+

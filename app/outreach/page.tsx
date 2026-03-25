@@ -110,80 +110,82 @@ export default async function OutreachPage({
         <>
           <Link
             href="/pipeline"
-            className="rounded-md border border-amber-300/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
           >
-            Open pipeline
+            Pipeline
           </Link>
           <Link
             href="/dashboard"
-            className="rounded-md border border-white/20 bg-[#111827] px-3 py-2 text-xs"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider ml-2"
           >
-            Back to dashboard
+            Dashboard
           </Link>
         </>
       }
     >
-
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {params.error ? (
-          <p className="mt-6 alert-error">
+          <p className="mt-4 alert-error">
             {params.error}
           </p>
         ) : null}
         {params.message ? (
-          <p className="mt-6 alert-success">
+          <p className="mt-4 alert-success">
             {params.message}
           </p>
         ) : null}
 
-        <section className="mt-6 grid gap-4 reveal-up">
-          <div className="grid gap-3 md:grid-cols-4 stagger-children">
-            <div className="metric-card">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Generated</p>
-              <p className="mt-2 text-2xl font-semibold">{analytics.generated}</p>
+        <section className="mt-6 grid gap-6 reveal-up">
+          <div className="grid gap-4 md:grid-cols-4 stagger-children">
+            <div className="bg-white border border-[#EBE8E0] p-6 shadow-sm rounded-sm">
+              <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Generated</p>
+              <p className="mt-3 text-3xl font-light tracking-tight text-[#2C2A26]">{analytics.generated}</p>
             </div>
-            <div className="metric-card">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Approved</p>
-              <p className="mt-2 text-2xl font-semibold">{analytics.approved}</p>
+            <div className="bg-white border border-[#EBE8E0] p-6 shadow-sm rounded-sm">
+              <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Approved</p>
+              <p className="mt-3 text-3xl font-light tracking-tight text-[#2C2A26]">{analytics.approved}</p>
             </div>
-            <div className="metric-card">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Sent</p>
-              <p className="mt-2 text-2xl font-semibold">{analytics.sent}</p>
+            <div className="bg-white border border-[#EBE8E0] p-6 shadow-sm rounded-sm">
+              <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Sent</p>
+              <p className="mt-3 text-3xl font-light tracking-tight text-[#2C2A26]">{analytics.sent}</p>
             </div>
-            <div className="metric-card">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Approval rate</p>
-              <p className="mt-2 text-2xl font-semibold">{analytics.approvalRate}%</p>
-              <p className="mt-1 text-[11px] text-[#94A3B8]">
-                Send from approved: {analytics.sendRateFromApproved}%
+            <div className="bg-white border border-[#EBE8E0] p-6 shadow-sm rounded-sm">
+              <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Approval rate</p>
+              <p className="mt-3 text-3xl font-light tracking-tight text-[#2C2A26]">{analytics.approvalRate}%</p>
+              <p className="mt-2 text-[11px] text-[#A19D94]">
+                Convert valid: {analytics.sendRateFromApproved}%
               </p>
             </div>
           </div>
 
-          <div className="glass-card p-5 reveal-up">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-[#94A3B8]">
-              Outreach activity timeline
+          <div className="bg-white border border-[#EBE8E0] p-6 shadow-sm rounded-sm reveal-up">
+            <h2 className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94] mb-4">
+              Activity timeline
             </h2>
-            <div className="mt-3 space-y-2">
+            <div className="space-y-3">
               {(events ?? []).slice(0, 12).map((event) => {
                 const company = prospectNameById.get(event.prospect_id) ?? "Unknown prospect";
                 return (
                   <div
                     key={event.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#0D1117] px-3 py-2"
+                    className="flex flex-wrap items-center justify-between gap-3 border-b border-[#F7F6F2] pb-3 last:border-0 last:pb-0"
                   >
-                    <p className="text-sm text-[#CBD5E1]">
-                      <span className="uppercase tracking-wide text-[#94A3B8]">{event.action_type}</span>{" "}
-                      for {company}
+                    <p className="text-sm font-medium text-[#2C2A26]">
+                      <span className="uppercase tracking-widest text-[#A19D94] font-semibold text-[10px]">{event.action_type}</span>{" "}
+                      <span className="mx-2 text-[#EBE8E0]">—</span> {company}
                     </p>
-                    <p className="text-xs text-[#94A3B8]">
+                    <p className="text-[11px] text-[#A19D94]">
                       {new Date(event.created_at).toLocaleString()}
                     </p>
                   </div>
                 );
               })}
               {!events?.length ? (
-                <p className="rounded-lg border border-dashed border-white/20 bg-[#0D1117] px-3 py-2 text-sm text-[#94A3B8]">
-                  No outreach activity yet. Generate and review drafts to start the timeline.
-                </p>
+                <div className="py-6 flex items-center justify-center border border-dashed border-[#EBE8E0] rounded">
+                  <p className="text-[11px] text-[#A19D94] italic">
+                    No activity yet. Generate drafts to start timeline.
+                  </p>
+                </div>
               ) : null}
             </div>
           </div>
@@ -193,12 +195,12 @@ export default async function OutreachPage({
             const latestVersion = prospectDrafts[0]?.version ?? 0;
 
             return (
-              <article key={prospect.id} className="glass-card p-5 reveal-up">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+              <article key={prospect.id} className="bg-white border border-[#EBE8E0] p-8 shadow-sm rounded-sm reveal-up mb-6">
+                <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#F7F6F2] pb-6 mb-6">
                   <div>
-                    <h2 className="text-lg font-semibold">{prospect.company_name}</h2>
-                    <p className="mt-1 text-sm text-[#94A3B8]">
-                      {prospect.domain ?? "No domain"} | Prospect status: {prospect.status} | Fit score:{" "}
+                    <h2 className="text-2xl font-light tracking-tight text-[#2C2A26]">{prospect.company_name}</h2>
+                    <p className="mt-2 text-sm text-[#716E68]">
+                      {prospect.domain ?? "No domain"} <span className="mx-2 text-[#EBE8E0]">|</span> {prospect.status} <span className="mx-2 text-[#EBE8E0]">|</span> Fit:{" "}
                       {prospect.fit_score ?? "-"}
                     </p>
                   </div>
@@ -208,9 +210,9 @@ export default async function OutreachPage({
                       <input type="hidden" name="prospect_id" value={prospect.id} />
                       <button
                         type="submit"
-                        className="btn-xs btn-primary"
+                        className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
                       >
-                        Generate 3 drafts
+                        Generate drafts
                       </button>
                     </form>
                     {latestVersion > 0 ? (
@@ -220,7 +222,7 @@ export default async function OutreachPage({
                         <input type="hidden" name="regenerate" value="1" />
                         <button
                           type="submit"
-                          className="btn-xs btn-ghost"
+                          className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
                         >
                           Regenerate (v{latestVersion + 1})
                         </button>
@@ -229,9 +231,9 @@ export default async function OutreachPage({
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <div className="grid gap-6 md:grid-cols-3">
                   {prospectDrafts.slice(0, 3).map((draft) => (
-                    <div key={draft.id} className="rounded-xl border border-white/10 bg-[#0D1117] p-4">
+                    <div key={draft.id} className="rounded border border-[#EBE8E0] bg-[#FDFCFB] p-6 shadow-sm flex flex-col hover:border-[#D5D1C6] transition-colors relative group">
                       {(() => {
                         const compliance = evaluateOutreachCompliance({
                           subject: draft.subject,
@@ -241,99 +243,115 @@ export default async function OutreachPage({
 
                         return (
                           <>
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">
-                          {draft.variant.replace("_", " ")} | v{draft.version}
-                        </p>
-                        <span className="rounded-full border border-white/20 px-2 py-0.5 text-[10px] uppercase tracking-wide text-[#CBD5E1]">
-                          {draft.status}
-                        </span>
-                      </div>
-                      <div className="mt-2 flex items-center gap-2">
-                        <span
-                          className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${complianceBadgeClass(compliance.status)}`}
-                        >
-                          Compliance: {compliance.status}
-                        </span>
-                      </div>
+                            <div className="flex items-center justify-between mb-4 border-b border-[#EBE8E0] pb-3">
+                              <p className="text-[10px] uppercase tracking-widest text-[#716E68] font-medium">
+                                {draft.variant.replace("_", " ")} v{draft.version}
+                              </p>
+                              <span className="px-2 py-0.5 rounded bg-white border border-[#EBE8E0] text-[9px] uppercase tracking-widest text-[#716E68] font-medium shadow-sm">
+                                {draft.status}
+                              </span>
+                            </div>
 
-                      <p className="mt-3 text-sm font-medium">{draft.subject}</p>
-                      <p className="mt-2 whitespace-pre-wrap text-xs text-[#CBD5E1]">
-                        {draft.body.slice(0, 360)}
-                        {draft.body.length > 360 ? "..." : ""}
-                      </p>
-                      <p className="mt-2 text-[11px] text-[#94A3B8]">Voice score: {draft.voice_score ?? "-"}</p>
-                      <ul className="mt-2 space-y-1 text-[11px] text-[#94A3B8]">
-                        {compliance.checks.slice(0, 3).map((check) => (
-                          <li key={check.id}>
-                            {check.label}: {check.message}
-                          </li>
-                        ))}
-                      </ul>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-[#2C2A26] leading-snug">{draft.subject}</p>
+                              <p className="mt-4 whitespace-pre-wrap text-[13px] text-[#716E68] font-serif leading-relaxed">
+                                {draft.body}
+                              </p>
+                            </div>
 
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <form action="/api/outreach/drafts/decision" method="post">
-                          <input type="hidden" name="firm_id" value={primary.firm_id} />
-                          <input type="hidden" name="draft_id" value={draft.id} />
-                          <input type="hidden" name="action" value="approve" />
-                          <button
-                            type="submit"
-                            className="rounded-md border border-emerald-300/40 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-200"
-                          >
-                            Approve
-                          </button>
-                        </form>
-                        <form action="/api/outreach/drafts/decision" method="post">
-                          <input type="hidden" name="firm_id" value={primary.firm_id} />
-                          <input type="hidden" name="draft_id" value={draft.id} />
-                          <input type="hidden" name="action" value="skip" />
-                          <button
-                            type="submit"
-                            className="rounded-md border border-amber-300/40 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-200"
-                          >
-                            Skip
-                          </button>
-                        </form>
-                        {draft.status === "approved" ? (
-                          <form action="/api/outreach/send" method="post">
-                            <input type="hidden" name="draft_id" value={draft.id} />
-                            <button
-                              type="submit"
-                              className="rounded-md border border-cyan-300/40 bg-cyan-500/10 px-2.5 py-1 text-xs text-cyan-200"
-                            >
-                              Send now
-                            </button>
-                          </form>
-                        ) : null}
-                      </div>
-                      {draft.sent_at ? (
-                        <p className="mt-2 text-[11px] text-emerald-300">
-                          Sent at {new Date(draft.sent_at).toLocaleString()}
-                        </p>
-                      ) : null}
+                            <div className="mt-6 pt-4 border-t border-[#EBE8E0]">
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Score: {draft.voice_score ?? "-"}</span>
+                                <span
+                                  className={`px-2 py-0.5 rounded text-[9px] uppercase tracking-widest font-medium border ${
+                                    compliance.status === "pass" 
+                                      ? "border-emerald-200 bg-emerald-50 text-emerald-700" 
+                                      : compliance.status === "warning"
+                                      ? "border-amber-200 bg-amber-50 text-amber-700"
+                                      : "border-rose-200 bg-rose-50 text-rose-700"
+                                  }`}
+                                >
+                                  {compliance.status}
+                                </span>
+                              </div>
+                              <ul className="mb-4 space-y-1.5 text-[10px] text-[#716E68]">
+                                {compliance.checks.slice(0, 2).map((check) => (
+                                  <li key={check.id} className="flex gap-2 items-start">
+                                    <span className="text-[#A19D94] mt-0.5">•</span>
+                                    <span>{check.message}</span>
+                                  </li>
+                                ))}
+                              </ul>
 
-                      <form action="/api/outreach/drafts/decision" method="post" className="mt-3 grid gap-2">
-                        <input type="hidden" name="firm_id" value={primary.firm_id} />
-                        <input type="hidden" name="draft_id" value={draft.id} />
-                        <input type="hidden" name="action" value="edit" />
-                        <input
-                          name="subject"
-                          defaultValue={draft.subject}
-                          className="input-base text-xs px-2 py-1"
-                        />
-                        <textarea
-                          name="body"
-                          defaultValue={draft.body}
-                          rows={5}
-                          className="input-base text-xs px-2 py-1"
-                        />
-                        <button
-                          type="submit"
-                          className="rounded-md border border-white/20 bg-[#111827] px-2.5 py-1 text-xs"
-                        >
-                          Save edit
-                        </button>
-                      </form>
+                              <div className="flex flex-wrap gap-2 pt-2">
+                                <form action="/api/outreach/drafts/decision" method="post" className="flex-1">
+                                  <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                  <input type="hidden" name="draft_id" value={draft.id} />
+                                  <input type="hidden" name="action" value="approve" />
+                                  <button
+                                    type="submit"
+                                    className="w-full px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 transition-all uppercase tracking-wider"
+                                  >
+                                    Approve
+                                  </button>
+                                </form>
+                                <form action="/api/outreach/drafts/decision" method="post" className="flex-1">
+                                  <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                  <input type="hidden" name="draft_id" value={draft.id} />
+                                  <input type="hidden" name="action" value="skip" />
+                                  <button
+                                    type="submit"
+                                    className="w-full px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-amber-700 hover:border-amber-200 hover:bg-amber-50 transition-all uppercase tracking-wider"
+                                  >
+                                    Skip
+                                  </button>
+                                </form>
+                              </div>
+
+                              {draft.status === "approved" ? (
+                                <form action="/api/outreach/send" method="post" className="mt-2 text-center">
+                                  <input type="hidden" name="draft_id" value={draft.id} />
+                                  <button
+                                    type="submit"
+                                    className="px-4 py-2 mt-2 w-full bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
+                                  >
+                                    Send campaign now
+                                  </button>
+                                </form>
+                              ) : null}
+
+                              {draft.sent_at ? (
+                                <p className="mt-4 text-center text-[10px] font-medium tracking-widest uppercase text-emerald-600">
+                                  Sent ({new Date(draft.sent_at).toLocaleDateString()})
+                                </p>
+                              ) : null}
+                            </div>
+
+                            <form action="/api/outreach/drafts/decision" method="post" className="mt-4 pt-4 border-t border-dashed border-[#EBE8E0] space-y-3">
+                              <p className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94] mb-2">Direct Edit</p>
+                              <input type="hidden" name="firm_id" value={primary.firm_id} />
+                              <input type="hidden" name="draft_id" value={draft.id} />
+                              <input type="hidden" name="action" value="edit" />
+                              <input
+                                name="subject"
+                                defaultValue={draft.subject}
+                                className="w-full rounded border border-[#EBE8E0] bg-white px-3 py-2 text-sm text-[#2C2A26] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors"
+                                placeholder="Subject"
+                              />
+                              <textarea
+                                name="body"
+                                defaultValue={draft.body}
+                                rows={6}
+                                className="w-full rounded border border-[#EBE8E0] bg-white px-3 py-2 text-[13px] font-serif leading-relaxed text-[#2C2A26] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors resize-y"
+                                placeholder="Body"
+                              />
+                              <button
+                                type="submit"
+                                className="w-full px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 transition-all uppercase tracking-wider"
+                              >
+                                Save edit
+                              </button>
+                            </form>
                           </>
                         );
                       })()}
@@ -341,8 +359,9 @@ export default async function OutreachPage({
                   ))}
 
                   {!prospectDrafts.length ? (
-                    <div className="rounded-xl border border-dashed border-white/20 bg-[#0D1117] p-4 text-sm text-[#94A3B8] md:col-span-3">
-                      No drafts yet for this prospect. Click &quot;Generate 3 drafts&quot; to start review.
+                    <div className="md:col-span-3 py-12 flex flex-col items-center justify-center border border-dashed border-[#EBE8E0] rounded bg-[#FDFCFB]">
+                      <p className="text-sm text-[#716E68] italic">No drafts yet for this prospect.</p>
+                      <p className="mt-1 text-[11px] text-[#A19D94]">Click 'Generate drafts' to unleash the AI.</p>
                     </div>
                   ) : null}
                 </div>
@@ -351,11 +370,19 @@ export default async function OutreachPage({
           })}
 
           {!prospects?.length ? (
-            <div className="rounded-xl border border-dashed border-white/20 bg-[#0D1117] p-5 text-sm text-[#94A3B8]">
-              No prospects available yet. Add prospects in the dashboard first, then return to Outreach Writer.
+            <div className="py-20 flex flex-col items-center justify-center border border-dashed border-[#EBE8E0] rounded-sm bg-white shadow-sm">
+              <p className="text-lg font-light text-[#2C2A26] tracking-tight">Writing room empty</p>
+              <p className="mt-2 text-sm text-[#716E68]">Add prospects in the dashboard first, then return to Writer.</p>
+              <Link
+                href="/dashboard"
+                className="mt-6 px-6 py-3 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
+              >
+                Go to Dashboard
+              </Link>
             </div>
           ) : null}
         </section>
+      </div>
     </AppShell>
   );
 }

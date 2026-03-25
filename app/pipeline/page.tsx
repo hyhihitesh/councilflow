@@ -151,25 +151,27 @@ export default async function PipelinePage({
       headerActions={
         <>
           <form action="/api/follow-ups/generate" method="post">
-            <button type="submit" className="btn-base btn-primary">
+            <button type="submit" className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider">
               Generate due follow-ups
             </button>
           </form>
-          <Link href="/dashboard" className="rounded-md border border-white/20 bg-[#111827] px-3 py-2 text-xs">
-            Back to dashboard
+          <Link href="/dashboard" className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider">
+            Dashboard
           </Link>
         </>
       }
     >
-      {params.error ? <p className="mt-6 alert-error">{params.error}</p> : null}
-      {params.message ? <p className="mt-6 alert-success">{params.message}</p> : null}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {params.error ? <p className="mt-4 alert-error">{params.error}</p> : null}
+        {params.message ? <p className="mt-4 alert-success">{params.message}</p> : null}
 
-      <PipelineBoard
-        initialProspects={(prospects ?? []) as Parameters<typeof PipelineBoard>[0]["initialProspects"]}
-        tasks={(tasks ?? []) as Parameters<typeof PipelineBoard>[0]["tasks"]}
-        threadSummaryByProspect={threadSummaryByProspect}
-        calendarByProspect={calendarByProspect}
-      />
+        <PipelineBoard
+          initialProspects={(prospects ?? []) as Parameters<typeof PipelineBoard>[0]["initialProspects"]}
+          tasks={(tasks ?? []) as Parameters<typeof PipelineBoard>[0]["tasks"]}
+          threadSummaryByProspect={threadSummaryByProspect}
+          calendarByProspect={calendarByProspect}
+        />
+      </div>
     </AppShell>
   );
 }

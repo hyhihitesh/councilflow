@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
-
 import { ONBOARDING_STEPS, validateOnboardingStep } from "@/app/onboarding/validation";
 
 type Props = {
@@ -10,7 +9,7 @@ type Props = {
   initialStep?: number;
 };
 
-export function OnboardingForm({ error, action, initialStep = 0 }: Props) {
+export default function OnboardingForm({ error, action, initialStep = 0 }: Props) {
   const [step, setStep] = useState(initialStep);
   const [localError, setLocalError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -45,127 +44,150 @@ export function OnboardingForm({ error, action, initialStep = 0 }: Props) {
     }
   }
 
+  const inputClass = "w-full bg-[#FDFCFB] border border-[#EBE8E0] text-[#2C2A26] px-4 py-3.5 rounded-md text-[15px] focus:outline-none focus:ring-1 focus:ring-[#EBE8E0] focus:border-[#C4C0B5] focus:bg-white transition-all duration-300 placeholder:text-[#D5D1C6]";
+  const labelClass = "text-[13px] text-[#716E68] font-medium ml-1 mb-1.5 block";
+
   return (
-    <form ref={formRef} action={action} onSubmit={onSubmit} className="glass-card mt-8 grid gap-4 p-6">
-      {error ? <p className="alert-error">{error}</p> : null}
-      {localError ? <p className="alert-error">{localError}</p> : null}
-
-      <div className="flex items-center gap-2 text-xs text-[#94A3B8]">
-        {ONBOARDING_STEPS.map((label, idx) => (
-          <span
-            key={label}
-            className={
-              idx === step
-                ? "rounded-full border border-indigo-300/40 bg-indigo-500/15 px-2 py-1 text-indigo-100"
-                : "rounded-full border border-white/15 bg-[#0D1117] px-2 py-1"
-            }
-          >
-            {idx + 1}. {label}
-          </span>
-        ))}
+    <form ref={formRef} action={action} onSubmit={onSubmit} className="bg-white border border-[#EBE8E0] rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 sm:p-14 w-full">
+      
+      {/* Progress Indicator */}
+      <div className="flex items-center justify-between mb-12 pb-6 border-b border-[#F7F6F2]">
+        <div className="flex items-center gap-4">
+          {ONBOARDING_STEPS.map((label, idx) => (
+            <div key={label} className="flex flex-col items-center gap-2">
+              <span
+                className={`w-2.5 h-2.5 rounded-full transition-all duration-700 ${
+                  idx === step
+                    ? "bg-[#2C2A26] scale-125 shadow-sm"
+                    : idx < step
+                    ? "bg-[#C4C0B5]"
+                    : "bg-[#EFECE5]"
+                }`}
+              />
+            </div>
+          ))}
+        </div>
+        <span className="text-[10px] uppercase tracking-[0.25em] text-[#A19D94] font-medium">
+          Step {step + 1} of {ONBOARDING_STEPS.length}
+        </span>
       </div>
 
-      <div className={step === 0 ? "grid gap-4" : "hidden"}>
-        <label className="grid gap-1 text-sm">
-          <span className="text-[#94A3B8]">Your display name</span>
-          <input className="input-base" name="display_name" type="text" placeholder="Hitesh" />
-        </label>
+      <div className="min-h-[260px]">
+        {error ? <p className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 text-[13px] rounded-md">{error}</p> : null}
+        {localError ? <p className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 text-[13px] rounded-md">{localError}</p> : null}
 
-        <label className="grid gap-1 text-sm">
-          <span className="text-[#94A3B8]">Firm name</span>
-                <input
-                  className="input-base"
-                  name="firm_name"
-                  type="text"
-                  placeholder="CouncilFlow Legal LLP"
-                />
-              </label>
+        {/* Step 0: Basic Info */}
+        <div className={step === 0 ? "grid gap-7 animate-in fade-in duration-700" : "hidden"}>
+          <div className="mb-2">
+            <h2 className="text-[1.5rem] font-light tracking-[-0.01em] text-[#2C2A26] mb-2 font-display">Firm Details</h2>
+            <p className="text-[15px] text-[#86827A] font-light">Let's start with your practice's core identity.</p>
+          </div>
+          <div>
+            <label className={labelClass}>Your display name</label>
+            <input className={inputClass} name="display_name" type="text" placeholder="e.g. Sarah Jenkins" />
+          </div>
+          <div>
+            <label className={labelClass}>Firm name</label>
+            <input className={inputClass} name="firm_name" type="text" placeholder="e.g. Meridian Counsel LLP" />
+          </div>
+        </div>
+
+        {/* Step 1: Practice Areas */}
+        <div className={step === 1 ? "grid gap-7 animate-in fade-in duration-700" : "hidden"}>
+          <div className="mb-2">
+            <h2 className="text-[1.5rem] font-light tracking-[-0.01em] text-[#2C2A26] mb-2 font-display">Areas of Practice</h2>
+            <p className="text-[15px] text-[#86827A] font-light">What legal services do you specialize in?</p>
+          </div>
+          <div>
+            <label className={labelClass}>Practice areas (comma separated)</label>
+            <input className={inputClass} name="practice_areas" type="text" placeholder="Corporate Law, Employment, M&A" />
+          </div>
+          <div className="grid sm:grid-cols-2 gap-7">
+            <div>
+              <label className={labelClass}>Office location</label>
+              <input className={inputClass} name="office_location" type="text" placeholder="New York, NY" />
+            </div>
+            <div>
+              <label className={labelClass}>Avg matter value (USD)</label>
+              <input className={inputClass} name="avg_matter_value" type="number" min={0} step={100} placeholder="25000" />
+            </div>
+          </div>
+        </div>
+
+        {/* Step 2: ICP */}
+        <div className={step === 2 ? "grid gap-7 animate-in fade-in duration-700" : "hidden"}>
+          <div className="mb-2">
+            <h2 className="text-[1.5rem] font-light tracking-[-0.01em] text-[#2C2A26] mb-2 font-display">Ideal Client Profile</h2>
+            <p className="text-[15px] text-[#86827A] font-light">Who does the AI need to find for you?</p>
+          </div>
+          <div>
+            <label className={labelClass}>Industries (comma separated)</label>
+            <input className={inputClass} name="icp_industries" type="text" placeholder="Healthtech, Fintech, SaaS" />
+          </div>
+          <div className="grid sm:grid-cols-2 gap-7">
+            <div>
+              <label className={labelClass}>Company sizes</label>
+              <input className={inputClass} name="icp_company_sizes" type="text" placeholder="50-200, 201-500 employees" />
+            </div>
+            <div>
+              <label className={labelClass}>Geography</label>
+              <input className={inputClass} name="icp_geography" type="text" placeholder="United States" />
+            </div>
+          </div>
+        </div>
+
+        {/* Step 3: Voice */}
+        <div className={step === 3 ? "grid gap-7 animate-in fade-in duration-700" : "hidden"}>
+          <div className="mb-2">
+            <h2 className="text-[1.5rem] font-light tracking-[-0.01em] text-[#2C2A26] mb-2 font-display">Voice & Tone</h2>
+            <p className="text-[15px] text-[#86827A] font-light">How should the AI draft your outreach?</p>
+          </div>
+          <div>
+            <label className={labelClass}>Preferred tone</label>
+            <select className={inputClass} name="voice_tone" defaultValue="professional">
+              <option value="professional">Professional & Refined</option>
+              <option value="direct">Direct & Concise</option>
+              <option value="warm">Warm & Conversational</option>
+              <option value="authoritative">Authoritative & Commanding</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Sample outreach paragraph (optional)</label>
+            <textarea
+              className={`${inputClass} min-h-[100px] py-3 resize-none`}
+              name="voice_sample"
+              placeholder="Paste a short sample of your writing so drafts perfectly match your firm's distinct voice."
+            />
+          </div>
+        </div>
       </div>
 
-      <div className={step === 1 ? "grid gap-4" : "hidden"}>
-        <label className="grid gap-1 text-sm">
-          <span className="text-[#94A3B8]">Practice areas (comma separated)</span>
-          <input
-            className="input-base"
-            name="practice_areas"
-            type="text"
-            placeholder="Corporate law, Employment, Litigation"
-          />
-        </label>
-
-        <label className="grid gap-1 text-sm">
-          <span className="text-[#94A3B8]">Office location</span>
-          <input className="input-base" name="office_location" type="text" placeholder="New York, NY" />
-        </label>
-
-        <label className="grid gap-1 text-sm">
-          <span className="text-[#94A3B8]">Average matter value (USD)</span>
-          <input className="input-base" name="avg_matter_value" type="number" min={0} step={100} placeholder="15000" />
-        </label>
-      </div>
-
-      <div className={step === 2 ? "grid gap-4" : "hidden"}>
-        <label className="grid gap-1 text-sm">
-          <span className="text-[#94A3B8]">Industries (comma separated)</span>
-          <input className="input-base" name="icp_industries" type="text" placeholder="SaaS, Healthtech, Fintech" />
-        </label>
-
-        <label className="grid gap-1 text-sm">
-          <span className="text-[#94A3B8]">Company sizes (comma separated)</span>
-          <input className="input-base" name="icp_company_sizes" type="text" placeholder="1-10, 11-50, 51-200" />
-        </label>
-
-        <label className="grid gap-1 text-sm">
-          <span className="text-[#94A3B8]">Geography</span>
-          <input className="input-base" name="icp_geography" type="text" placeholder="US East Coast" />
-        </label>
-      </div>
-
-      <div className={step === 3 ? "grid gap-4" : "hidden"}>
-        <label className="grid gap-1 text-sm">
-          <span className="text-[#94A3B8]">Preferred tone</span>
-          <select className="input-base" name="voice_tone" defaultValue="professional">
-            <option value="professional">Professional</option>
-            <option value="direct">Direct</option>
-            <option value="warm">Warm</option>
-            <option value="authoritative">Authoritative</option>
-          </select>
-        </label>
-
-        <label className="grid gap-1 text-sm">
-          <span className="text-[#94A3B8]">Sample outreach paragraph (optional)</span>
-          <textarea
-            className="input-base min-h-28"
-            name="voice_sample"
-            placeholder="Paste a short sample so drafts better match your voice."
-          />
-        </label>
-      </div>
-
-      <div className="mt-2 flex items-center justify-between">
+      {/* Navigation Buttons */}
+      <div className="mt-12 pt-8 border-t border-[#F7F6F2] flex items-center justify-between">
         <button
           type="button"
           onClick={onPrevStep}
           disabled={step === 0}
-          className="rounded-md border border-white/20 bg-[#111827] px-3 py-2 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+          className="text-[13px] font-medium text-[#86827A] hover:text-[#2C2A26] disabled:opacity-30 disabled:hover:text-[#86827A] transition-colors"
         >
-          Back
+          ← Go Back
         </button>
 
         {step < ONBOARDING_STEPS.length - 1 ? (
           <button
             type="button"
             onClick={onNextStep}
-            className="btn-base btn-primary"
+            className="bg-[#2C2A26] text-[#FDFCFB] px-8 py-3.5 rounded-md text-[14px] font-medium hover:bg-[#1A1917] transition-all shadow-sm"
           >
-            Next
+            Continue
           </button>
         ) : (
-          <button className="btn-base btn-primary" type="submit">
-            Create workspace
+          <button className="bg-[#2C2A26] text-[#FDFCFB] px-8 py-3.5 rounded-md text-[14px] font-medium hover:bg-[#1A1917] transition-all shadow-md hover:shadow-lg" type="submit">
+            Establish Workspace
           </button>
         )}
       </div>
     </form>
   );
 }
+export { OnboardingForm };
