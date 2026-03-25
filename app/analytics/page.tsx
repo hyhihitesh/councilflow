@@ -219,6 +219,7 @@ export default async function AnalyticsPage() {
     <AppShell
       title="Analytics"
       description={`Firm: ${firm?.name ?? "Unknown"} | Performance, revenue, content, and audit visibility with narrative KPI framing.`}
+      userEmail={user.email}
       billingAccessState={accessState.ok ? accessState.accessState : "active"}
       billingAccessContext={
         accessState.ok
@@ -229,24 +230,23 @@ export default async function AnalyticsPage() {
           : undefined
       }
       currentPath="/analytics"
-      mobileCta={{ href: "/dashboard", label: "Open Command Center" }}
       headerActions={
         <>
           <Link
             href="/api/audit/export?format=json&days=30"
-            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-indigo-700 hover:bg-white transition-all uppercase tracking-wider"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded-sm hover:text-indigo-700 hover:bg-white transition-all uppercase tracking-widest"
           >
-            Export JSON (30d)
+            Export JSON
           </Link>
           <Link
             href="/api/audit/export?format=csv&days=30"
-            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-indigo-700 hover:bg-white transition-all uppercase tracking-wider ml-2"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded-sm hover:text-indigo-700 hover:bg-white transition-all uppercase tracking-widest"
           >
-            Export CSV (30d)
+            Export CSV
           </Link>
           <Link
             href="/dashboard"
-            className="px-4 py-2 border border-[#EBE8E0] bg-[#FDFCFB] text-[#2C2A26] text-xs font-medium rounded hover:bg-white transition-all uppercase tracking-wider ml-2 shadow-sm"
+            className="px-4 py-2 border border-[#EBE8E0] bg-[#FDFCFB] text-[#2C2A26] text-[10px] font-medium rounded-sm hover:bg-white transition-all uppercase tracking-widest shadow-sm"
           >
             Dashboard
           </Link>

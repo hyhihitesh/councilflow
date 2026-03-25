@@ -82,6 +82,18 @@ export async function oauthSignInAction(formData: FormData) {
   redirect(data.url);
 }
 
+function isRedirectError(error: any) {
+  return (
+    error &&
+    typeof error === "object" &&
+    error.digest &&
+    typeof error.digest === "string" &&
+    error.digest.startsWith("NEXT_REDIRECT")
+  );
+}
+
+// ... (helper functions)
+
 export async function signInAction(formData: FormData) {
   const email = asNonEmptyString(formData.get("email"));
   const password = asNonEmptyString(formData.get("password"));
@@ -90,21 +102,22 @@ export async function signInAction(formData: FormData) {
     redirect("/auth/sign-in?error=Email%20and%20password%20are%20required");
   }
 
-  let error: { message: string } | null = null;
   try {
     const supabase = await createClient();
-    const result = await supabase.auth.signInWithPassword({ email, password });
-    error = result.error;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      console.error("[signInAction] Auth error:", error.message);
+      redirect(`/auth/sign-in?error=${toQueryParam(mapAuthErrorMessage(error.message))}`);
+    }
+
+    redirect("/dashboard");
   } catch (thrown) {
+    if (isRedirectError(thrown)) throw thrown;
+    console.error("[signInAction] Unexpected error:", thrown);
     const message = thrown instanceof Error ? thrown.message : "Sign in failed unexpectedly";
     redirect(`/auth/sign-in?error=${toQueryParam(message)}`);
   }
-
-  if (error) {
-    redirect(`/auth/sign-in?error=${toQueryParam(mapAuthErrorMessage(error.message))}`);
-  }
-
-  redirect("/dashboard");
 }
 
 export async function signUpAction(formData: FormData) {
@@ -115,37 +128,35 @@ export async function signUpAction(formData: FormData) {
     redirect("/auth/sign-in?error=Email%20and%20password%20are%20required");
   }
 
-  const origin = getAppOrigin();
-  let data: { session: unknown } | null = null;
-  let error: { message: string } | null = null;
-
   try {
+    const origin = getAppOrigin();
     const supabase = await createClient();
-    const result = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${origin}/dashboard`,
       },
     });
-    data = result.data as { session: unknown } | null;
-    error = result.error;
+
+    if (error) {
+      console.error("[signUpAction] Auth error:", error.message);
+      redirect(`/auth/sign-in?error=${toQueryParam(mapAuthErrorMessage(error.message))}`);
+    }
+
+    if (!data?.session) {
+      redirect(
+        "/auth/sign-in?message=Check%20your%20email%20to%20confirm%20your%20account%2C%20then%20sign%20in",
+      );
+    }
+
+    redirect("/onboarding");
   } catch (thrown) {
+    if (isRedirectError(thrown)) throw thrown;
+    console.error("[signUpAction] Unexpected error:", thrown);
     const message = thrown instanceof Error ? thrown.message : "Sign up failed unexpectedly";
     redirect(`/auth/sign-in?error=${toQueryParam(message)}`);
   }
-
-  if (error) {
-    redirect(`/auth/sign-in?error=${toQueryParam(mapAuthErrorMessage(error.message))}`);
-  }
-
-  if (!data?.session) {
-    redirect(
-      "/auth/sign-in?message=Check%20your%20email%20to%20confirm%20your%20account%2C%20then%20sign%20in",
-    );
-  }
-
-  redirect("/onboarding");
 }
 
 export async function signOutAction() {
@@ -155,126 +166,115 @@ export async function signOutAction() {
 }
 
 export async function completeOnboardingAction(formData: FormData) {
-  const displayName = asNonEmptyString(formData.get("display_name"));
-  const firmName = asNonEmptyString(formData.get("firm_name"));
-  const practiceAreas = parseCsvList(formData.get("practice_areas"));
-  const officeLocation = asNonEmptyString(formData.get("office_location"));
-  const avgMatterValueRaw = asNonEmptyString(formData.get("avg_matter_value"));
-  const avgMatterValue = Number(avgMatterValueRaw);
-  const icpIndustries = parseCsvList(formData.get("icp_industries"));
-  const icpCompanySizes = parseCsvList(formData.get("icp_company_sizes"));
-  const icpGeography = asNonEmptyString(formData.get("icp_geography"));
-  const voiceTone = asNonEmptyString(formData.get("voice_tone"));
-  const voiceSample = asNonEmptyString(formData.get("voice_sample"));
+  try {
+    const displayName = asNonEmptyString(formData.get("display_name"));
+    const firmName = asNonEmptyString(formData.get("firm_name"));
+    const practiceAreas = parseCsvList(formData.get("practice_areas"));
+    const officeLocation = asNonEmptyString(formData.get("office_location"));
+    const avgMatterValueRaw = asNonEmptyString(formData.get("avg_matter_value"));
+    const avgMatterValue = Number(avgMatterValueRaw);
+    const icpIndustries = parseCsvList(formData.get("icp_industries"));
+    const icpCompanySizes = parseCsvList(formData.get("icp_company_sizes"));
+    const icpGeography = asNonEmptyString(formData.get("icp_geography"));
+    const voiceTone = asNonEmptyString(formData.get("voice_tone"));
+    const voiceSample = asNonEmptyString(formData.get("voice_sample"));
 
-  if (!firmName) {
-    redirect("/onboarding?error=Firm%20name%20is%20required");
-  }
-
-  if (displayName.length < 2) {
-    redirect("/onboarding?error=Display%20name%20must%20be%20at%20least%202%20characters");
-  }
-
-  if (practiceAreas.length === 0) {
-    redirect("/onboarding?error=Add%20at%20least%20one%20practice%20area");
-  }
-
-  if (!officeLocation) {
-    redirect("/onboarding?error=Office%20location%20is%20required");
-  }
-
-  if (!Number.isFinite(avgMatterValue) || avgMatterValue <= 0) {
-    redirect("/onboarding?error=Average%20matter%20value%20must%20be%20greater%20than%200");
-  }
-
-  if (icpIndustries.length === 0) {
-    redirect("/onboarding?error=Add%20at%20least%20one%20ICP%20industry");
-  }
-
-  if (icpCompanySizes.length === 0) {
-    redirect("/onboarding?error=Add%20at%20least%20one%20company%20size");
-  }
-
-  if (!icpGeography) {
-    redirect("/onboarding?error=ICP%20geography%20is%20required");
-  }
-
-  if (!voiceTone) {
-    redirect("/onboarding?error=Preferred%20voice%20tone%20is%20required");
-  }
-
-  if (voiceSample && voiceSample.length < 40) {
-    redirect("/onboarding?error=Voice%20sample%20must%20be%20at%20least%2040%20characters");
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
-    redirect("/auth/sign-in?error=Please%20sign%20in%20again");
-  }
-
-  const { error: profileError } = await supabase.from("profiles").upsert({
-    id: user.id,
-    display_name: displayName || null,
-    practice_areas: practiceAreas,
-    office_location: officeLocation || null,
-    avg_matter_value: Number.isFinite(avgMatterValue) && avgMatterValue >= 0 ? avgMatterValue : null,
-    icp_profile: {
-      industries: icpIndustries,
-      company_sizes: icpCompanySizes,
-      geography: icpGeography || null,
-    },
-    voice_profile: {
-      tone: voiceTone || "professional",
-      sample: voiceSample || null,
-      source: voiceSample ? "manual_sample" : "default",
-    },
-  });
-
-  if (profileError) {
-    redirect(`/onboarding?error=${toQueryParam(profileError.message)}`);
-  }
-
-  const { data: createdFirmId, error: firmError } = await supabase.rpc("create_firm_with_owner", {
-    firm_name: firmName,
-  });
-
-  if (firmError) {
-    redirect(`/onboarding?error=${toQueryParam(firmError.message)}`);
-  }
-
-  const { data: createdMembership, error: membershipCheckError } = await supabase
-    .from("firm_memberships")
-    .select("id")
-    .eq("user_id", user.id)
-    .limit(1)
-    .maybeSingle();
-
-  if (membershipCheckError) {
-    redirect(`/onboarding?error=${toQueryParam(membershipCheckError.message)}`);
-  }
-
-  if (!createdMembership && typeof createdFirmId === "string" && createdFirmId.length > 0) {
-    const admin = createAdminClient();
-    const { error: backfillMembershipError } = await admin.from("firm_memberships").upsert(
-      {
-        firm_id: createdFirmId,
-        user_id: user.id,
-        role: "owner",
-      },
-      { onConflict: "firm_id,user_id" },
-    );
-
-    if (backfillMembershipError) {
-      redirect(`/onboarding?error=${toQueryParam(backfillMembershipError.message)}`);
+    if (!firmName) redirect("/onboarding?error=Firm%20name%20is%20required");
+    if (displayName.length < 2) redirect("/onboarding?error=Display%20name%20must%20be%20at%20least%202%20characters");
+    if (practiceAreas.length === 0) redirect("/onboarding?error=Add%20at%20least%20one%20practice%20area");
+    if (!officeLocation) redirect("/onboarding?error=Office%20location%20is%20required");
+    if (!Number.isFinite(avgMatterValue) || avgMatterValue <= 0) {
+      redirect("/onboarding?error=Average%20matter%20value%20must%20be%20greater%20than%200");
     }
-  }
+    if (icpIndustries.length === 0) redirect("/onboarding?error=Add%20at%20least%20one%20ICP%20industry");
+    if (icpCompanySizes.length === 0) redirect("/onboarding?error=Add%20at%20least%20one%20company%20size");
+    if (!icpGeography) redirect("/onboarding?error=ICP%20geography%20is%20required");
+    if (!voiceTone) redirect("/onboarding?error=Preferred%20voice%20tone%20is%20required");
+    if (voiceSample && voiceSample.length < 40) {
+      redirect("/onboarding?error=Voice%20sample%20must%20be%20at%20least%2040%20characters");
+    }
 
-  redirect("/dashboard");
+    const supabase = await createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.error("[completeOnboardingAction] Auth error:", userError?.message);
+      redirect("/auth/sign-in?error=Please%20sign%20in%20again");
+    }
+
+    // 1. Update Profile
+    const { error: profileError } = await supabase.from("profiles").upsert({
+      id: user.id,
+      display_name: displayName || null,
+      practice_areas: practiceAreas,
+      office_location: officeLocation || null,
+      avg_matter_value: Number.isFinite(avgMatterValue) && avgMatterValue >= 0 ? avgMatterValue : null,
+      icp_profile: {
+        industries: icpIndustries,
+        company_sizes: icpCompanySizes,
+        geography: icpGeography || null,
+      },
+      voice_profile: {
+        tone: voiceTone || "professional",
+        sample: voiceSample || null,
+        source: voiceSample ? "manual_sample" : "default",
+      },
+    });
+
+    if (profileError) {
+      console.error("[completeOnboardingAction] Profile error:", profileError.message);
+      redirect(`/onboarding?error=${toQueryParam(profileError.message)}`);
+    }
+
+    // 2. Create Firm via RPC
+    const { data: createdFirmId, error: firmError } = await supabase.rpc("create_firm_with_owner", {
+      firm_name: firmName,
+    });
+
+    if (firmError) {
+      console.error("[completeOnboardingAction] Firm RPC error:", firmError.message);
+      redirect(`/onboarding?error=${toQueryParam(firmError.message)}`);
+    }
+
+    // 3. Verify/Backfill Membership
+    const { data: createdMembership, error: membershipCheckError } = await supabase
+      .from("firm_memberships")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (membershipCheckError) {
+      console.error("[completeOnboardingAction] Membership check error:", membershipCheckError.message);
+      redirect(`/onboarding?error=${toQueryParam(membershipCheckError.message)}`);
+    }
+
+    if (!createdMembership && typeof createdFirmId === "string" && createdFirmId.length > 0) {
+      console.log("[completeOnboardingAction] Backfilling ownership for firm:", createdFirmId);
+      const admin = createAdminClient();
+      const { error: backfillMembershipError } = await admin.from("firm_memberships").upsert(
+        {
+          firm_id: createdFirmId,
+          user_id: user.id,
+          role: "owner",
+        },
+        { onConflict: "firm_id,user_id" },
+      );
+
+      if (backfillMembershipError) {
+        console.error("[completeOnboardingAction] Backfill error:", backfillMembershipError.message);
+        redirect(`/onboarding?error=${toQueryParam(backfillMembershipError.message)}`);
+      }
+    }
+
+    console.log("[completeOnboardingAction] Onboarding successful for user:", user.id);
+    redirect("/dashboard");
+  } catch (thrown) {
+    if (isRedirectError(thrown)) throw thrown;
+    console.error("[completeOnboardingAction] CRITICAL ERROR:", thrown);
+    const message = thrown instanceof Error ? thrown.message : "Onboarding failed unexpectedly";
+    redirect(`/onboarding?error=${toQueryParam(message)}`);
+  }
 }
 
 const INVITABLE_ROLES = new Set(["attorney", "ops"]);

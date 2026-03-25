@@ -137,6 +137,7 @@ export default async function PipelinePage({
     <AppShell
       title="Follow-Up Pipeline"
       description={`Firm: ${firm?.name ?? "Unknown"}`}
+      userEmail={user.email}
       billingAccessState={accessState.ok ? accessState.accessState : "active"}
       billingAccessContext={
         accessState.ok
@@ -147,15 +148,14 @@ export default async function PipelinePage({
           : undefined
       }
       currentPath="/pipeline"
-      mobileCta={{ href: "/outreach", label: "Open Outreach Writer" }}
       headerActions={
         <>
           <form action="/api/follow-ups/generate" method="post">
-            <button type="submit" className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider">
+            <button type="submit" className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded-sm hover:bg-[#4A4742] transition-colors uppercase tracking-widest shadow-sm">
               Generate due follow-ups
             </button>
           </form>
-          <Link href="/dashboard" className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider">
+          <Link href="/dashboard" className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded-sm hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-widest">
             Dashboard
           </Link>
         </>

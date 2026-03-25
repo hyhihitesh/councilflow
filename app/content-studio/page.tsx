@@ -103,6 +103,7 @@ export default async function ContentStudioPage({
     <AppShell
       title="Content Studio"
       description={`Firm: ${firm?.name ?? "Unknown"} | Generate, edit, approve, and publish thought-leadership drafts.`}
+      userEmail={user.email}
       billingAccessState={accessState.ok ? accessState.accessState : "active"}
       billingAccessContext={
         accessState.ok
@@ -113,24 +114,23 @@ export default async function ContentStudioPage({
           : undefined
       }
       currentPath="/content-studio"
-      mobileCta={{ href: "/pipeline", label: "Open Follow-Up Pipeline" }}
       headerActions={
         <>
           <Link
             href="/pipeline"
-            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded-sm hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-widest"
           >
-            Pipeline
+            Pipeline Board
           </Link>
           <Link
             href="/analytics"
-            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider ml-2"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded-sm hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-widest"
           >
-            Analytics
+            Performance
           </Link>
           <Link
             href="/dashboard"
-            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider ml-2"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded-sm hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-widest"
           >
             Dashboard
           </Link>

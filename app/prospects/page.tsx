@@ -91,6 +91,7 @@ export default async function ProspectsPage({
     <AppShell
       title="Prospect Queue"
       description={`Firm: ${firm?.name ?? "Unknown"} | Ranked opportunities with quick outreach actions.`}
+      userEmail={user.email}
       billingAccessState={accessState.ok ? accessState.accessState : "active"}
       billingAccessContext={
         accessState.ok
@@ -101,18 +102,17 @@ export default async function ProspectsPage({
           : undefined
       }
       currentPath="/prospects"
-      mobileCta={{ href: "/outreach", label: "Open Outreach Writer" }}
       headerActions={
         <>
           <Link
             href="/outreach"
-            className="px-4 py-2 bg-[#EFECE5] text-[#2C2A26] text-xs font-medium rounded-sm hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider"
+            className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded-sm hover:bg-[#4A4742] transition-colors uppercase tracking-widest shadow-sm"
           >
-            Outreach
+            New Outreach
           </Link>
           <Link
             href="/dashboard"
-            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded-sm hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded-sm hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-widest"
           >
             Dashboard
           </Link>

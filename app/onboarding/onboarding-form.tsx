@@ -12,6 +12,7 @@ type Props = {
 export default function OnboardingForm({ error, action, initialStep = 0 }: Props) {
   const [step, setStep] = useState(initialStep);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   function onNextStep() {
@@ -42,13 +43,14 @@ export default function OnboardingForm({ error, action, initialStep = 0 }: Props
         return;
       }
     }
+    setPending(true);
   }
 
   const inputClass = "w-full bg-[#FDFCFB] border border-[#EBE8E0] text-[#2C2A26] px-4 py-3.5 rounded-md text-[15px] focus:outline-none focus:ring-1 focus:ring-[#EBE8E0] focus:border-[#C4C0B5] focus:bg-white transition-all duration-300 placeholder:text-[#D5D1C6]";
   const labelClass = "text-[13px] text-[#716E68] font-medium ml-1 mb-1.5 block";
 
   return (
-    <form ref={formRef} action={action} onSubmit={onSubmit} className="bg-white border border-[#EBE8E0] rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 sm:p-14 w-full">
+    <form ref={formRef} action={action} onSubmit={onSubmit} className={`bg-white border border-[#EBE8E0] rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 sm:p-14 w-full transition-opacity duration-300 ${pending ? "opacity-70 pointer-events-none" : ""}`}>
       
       {/* Progress Indicator */}
       <div className="flex items-center justify-between mb-12 pb-6 border-b border-[#F7F6F2]">
@@ -84,11 +86,11 @@ export default function OnboardingForm({ error, action, initialStep = 0 }: Props
           </div>
           <div>
             <label className={labelClass}>Your display name</label>
-            <input className={inputClass} name="display_name" type="text" placeholder="e.g. Sarah Jenkins" />
+            <input className={inputClass} name="display_name" type="text" placeholder="e.g. Sarah Jenkins" required disabled={pending} />
           </div>
           <div>
             <label className={labelClass}>Firm name</label>
-            <input className={inputClass} name="firm_name" type="text" placeholder="e.g. Meridian Counsel LLP" />
+            <input className={inputClass} name="firm_name" type="text" placeholder="e.g. Meridian Counsel LLP" required disabled={pending} />
           </div>
         </div>
 
@@ -100,16 +102,16 @@ export default function OnboardingForm({ error, action, initialStep = 0 }: Props
           </div>
           <div>
             <label className={labelClass}>Practice areas (comma separated)</label>
-            <input className={inputClass} name="practice_areas" type="text" placeholder="Corporate Law, Employment, M&A" />
+            <input className={inputClass} name="practice_areas" type="text" placeholder="Corporate Law, Employment, M&A" required disabled={pending} />
           </div>
           <div className="grid sm:grid-cols-2 gap-7">
             <div>
               <label className={labelClass}>Office location</label>
-              <input className={inputClass} name="office_location" type="text" placeholder="New York, NY" />
+              <input className={inputClass} name="office_location" type="text" placeholder="New York, NY" required disabled={pending} />
             </div>
             <div>
               <label className={labelClass}>Avg matter value (USD)</label>
-              <input className={inputClass} name="avg_matter_value" type="number" min={0} step={100} placeholder="25000" />
+              <input className={inputClass} name="avg_matter_value" type="number" min={0} step={100} placeholder="25000" required disabled={pending} />
             </div>
           </div>
         </div>
@@ -122,16 +124,16 @@ export default function OnboardingForm({ error, action, initialStep = 0 }: Props
           </div>
           <div>
             <label className={labelClass}>Industries (comma separated)</label>
-            <input className={inputClass} name="icp_industries" type="text" placeholder="Healthtech, Fintech, SaaS" />
+            <input className={inputClass} name="icp_industries" type="text" placeholder="Healthtech, Fintech, SaaS" required disabled={pending} />
           </div>
           <div className="grid sm:grid-cols-2 gap-7">
             <div>
               <label className={labelClass}>Company sizes</label>
-              <input className={inputClass} name="icp_company_sizes" type="text" placeholder="50-200, 201-500 employees" />
+              <input className={inputClass} name="icp_company_sizes" type="text" placeholder="50-200, 201-500 employees" required disabled={pending} />
             </div>
             <div>
               <label className={labelClass}>Geography</label>
-              <input className={inputClass} name="icp_geography" type="text" placeholder="United States" />
+              <input className={inputClass} name="icp_geography" type="text" placeholder="United States" required disabled={pending} />
             </div>
           </div>
         </div>
@@ -144,7 +146,7 @@ export default function OnboardingForm({ error, action, initialStep = 0 }: Props
           </div>
           <div>
             <label className={labelClass}>Preferred tone</label>
-            <select className={inputClass} name="voice_tone" defaultValue="professional">
+            <select className={inputClass} name="voice_tone" defaultValue="professional" disabled={pending}>
               <option value="professional">Professional & Refined</option>
               <option value="direct">Direct & Concise</option>
               <option value="warm">Warm & Conversational</option>
@@ -157,6 +159,7 @@ export default function OnboardingForm({ error, action, initialStep = 0 }: Props
               className={`${inputClass} min-h-[100px] py-3 resize-none`}
               name="voice_sample"
               placeholder="Paste a short sample of your writing so drafts perfectly match your firm's distinct voice."
+              disabled={pending}
             />
           </div>
         </div>
@@ -167,7 +170,7 @@ export default function OnboardingForm({ error, action, initialStep = 0 }: Props
         <button
           type="button"
           onClick={onPrevStep}
-          disabled={step === 0}
+          disabled={step === 0 || pending}
           className="text-[13px] font-medium text-[#86827A] hover:text-[#2C2A26] disabled:opacity-30 disabled:hover:text-[#86827A] transition-colors"
         >
           ← Go Back
@@ -177,13 +180,23 @@ export default function OnboardingForm({ error, action, initialStep = 0 }: Props
           <button
             type="button"
             onClick={onNextStep}
-            className="bg-[#2C2A26] text-[#FDFCFB] px-8 py-3.5 rounded-md text-[14px] font-medium hover:bg-[#1A1917] transition-all shadow-sm"
+            disabled={pending}
+            className="bg-[#2C2A26] text-[#FDFCFB] px-8 py-3.5 rounded-md text-[14px] font-medium hover:bg-[#1A1917] transition-all shadow-sm disabled:opacity-50"
           >
             Continue
           </button>
         ) : (
-          <button className="bg-[#2C2A26] text-[#FDFCFB] px-8 py-3.5 rounded-md text-[14px] font-medium hover:bg-[#1A1917] transition-all shadow-md hover:shadow-lg" type="submit">
-            Establish Workspace
+          <button 
+            className="bg-[#2C2A26] text-[#FDFCFB] px-8 py-3.5 rounded-md text-[14px] font-medium hover:bg-[#1A1917] transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center gap-2" 
+            type="submit"
+            disabled={pending}
+          >
+            {pending ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-[#FDFCFB]/30 border-t-[#FDFCFB] rounded-full animate-spin" />
+                Setting up...
+              </>
+            ) : "Establish Workspace"}
           </button>
         )}
       </div>

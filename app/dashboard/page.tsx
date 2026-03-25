@@ -15,6 +15,7 @@ import { getFirmAccessState } from "@/lib/billing/entitlements";
 import { summarizeReportingObservability } from "@/lib/reporting/health";
 import { AppShell } from "@/components/layout/app-shell";
 import { createClient } from "@/lib/supabase/server";
+import { ZenToggle } from "@/components/dashboard/zen-toggle";
 
 type SearchParams = {
   error?: string;
@@ -22,6 +23,7 @@ type SearchParams = {
   q?: string;
   status?: string;
   min_score?: string;
+  zen?: string;
 };
 
 const PIPELINE_STAGES = [
@@ -78,6 +80,7 @@ export default async function DashboardPage({
   const statusFilter = params.status?.trim().toLowerCase() ?? "all";
   const minScore = Number(params.min_score ?? "");
   const hasMinScore = Number.isFinite(minScore) && minScore >= 0;
+  const isZen = params.zen === "true";
 
   const { data: firmMembers } = await supabase
     .from("firm_memberships")
@@ -386,6 +389,7 @@ export default async function DashboardPage({
     <AppShell
       title={`Welcome${user.email ? `, ${user.email}` : ""}`}
       description={`Firm: ${firm?.name ?? "Unknown"} | Role: ${primary.role}`}
+      userEmail={user.email}
       billingAccessState={accessState.ok ? accessState.accessState : "active"}
       billingAccessContext={
         accessState.ok
@@ -396,30 +400,26 @@ export default async function DashboardPage({
           : undefined
       }
       currentPath="/dashboard"
-      mobileCta={{ href: "/outreach", label: "Open Outreach Writer" }}
       headerActions={
         <>
-                <Link className="px-4 py-2 bg-[#EFECE5] text-[#2C2A26] text-xs font-medium rounded-sm hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider" href="/outreach">
+                <ZenToggle />
+                <Link className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded-sm hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-widest" href="/prospects">
+                  Prospect Queue
+                </Link>
+                <Link className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded-sm hover:bg-[#4A4742] transition-colors uppercase tracking-widest shadow-sm" href="/outreach">
                   New Outreach
                 </Link>
-                <Link className="px-4 py-2 bg-[#EFECE5] text-[#2C2A26] text-xs font-medium rounded-sm hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider" href="/pipeline">
-                  Pipeline
-                </Link>
-                <Link className="px-4 py-2 bg-[#EFECE5] text-[#2C2A26] text-xs font-medium rounded-sm hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider" href="/content-studio">
-                  Content
-                </Link>
-                <form action={signOutAction}>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded-sm hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
-                  >
-                    Sign out
-                  </button>
-                </form>
         </>
       }
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {isZen && (
+          <div className="absolute top-4 right-8 flex items-center gap-2 px-3 py-1 bg-[#2C2A26]/5 rounded-full animate-in fade-in zoom-in duration-500">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#6B705C] animate-pulse"></div>
+            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#6B705C]">Zen Mode Active</span>
+          </div>
+        )}
+        
         {params.error ? (
           <p className="mt-4 alert-error">
             {params.error}
@@ -432,79 +432,81 @@ export default async function DashboardPage({
         ) : null}
 
 
-        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-6 pb-6 border-b border-[#F7F6F2]">
-            <div>
-              <h2 className="text-xl font-light tracking-tight">Billing & Subscription</h2>
-              <p className="mt-2 text-sm text-[#716E68]">
-                Enterprise workspace controls and firm-wide licensing.
-              </p>
+        {!isZen && (
+          <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-6 pb-6 border-b border-[#F7F6F2]">
+              <div>
+                <h2 className="text-xl font-light tracking-tight">Billing & Subscription</h2>
+                <p className="mt-2 text-sm text-[#716E68]">
+                  Enterprise workspace controls and firm-wide licensing.
+                </p>
+              </div>
+              {isOwner ? (
+                <Link
+                  href="/portal"
+                  className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
+                >
+                  Billing Portal
+                </Link>
+              ) : (
+                <span className="px-3 py-1 bg-[#EFECE5] text-[#A19D94] text-[10px] uppercase tracking-widest font-medium rounded">
+                  Owner Access Restricted
+                </span>
+              )}
             </div>
-            {isOwner ? (
-              <Link
-                href="/portal"
-                className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
-              >
-                Billing Portal
-              </Link>
-            ) : (
-              <span className="px-3 py-1 bg-[#EFECE5] text-[#A19D94] text-[10px] uppercase tracking-widest font-medium rounded">
-                Owner Access Restricted
-              </span>
-            )}
-          </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-4 stagger-children">
-            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Workspace Status</p>
-              <p className={billingIsActive ? "text-lg font-medium text-[#6B705C] flex items-center gap-2" : "text-lg font-medium text-[#B79455]"}>
-                {billingIsActive && <span className="w-1.5 h-1.5 rounded-full bg-[#6B705C] animate-pulse"></span>}
-                {billingStatus ?? "inactive"}
-              </p>
-            </article>
-            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Current Tier</p>
-              <p className="text-lg font-medium">{billingPlanLabel}</p>
-            </article>
-            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Renewal Date</p>
-              <p className="text-sm font-medium">
-                {billingPeriodEnd ? new Date(billingPeriodEnd).toLocaleDateString() : "-"}
-              </p>
-            </article>
-            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Cycle Management</p>
-              <p className="text-sm font-medium">
-                {billingCancelAtPeriodEnd ? "Terminating at end" : "Active Auto-renew"}
-              </p>
-            </article>
-          </div>
+            <div className="mt-8 grid gap-4 md:grid-cols-4 stagger-children">
+              <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Workspace Status</p>
+                <p className={billingIsActive ? "text-lg font-medium text-[#6B705C] flex items-center gap-2" : "text-lg font-medium text-[#B79455]"}>
+                  {billingIsActive && <span className="w-1.5 h-1.5 rounded-full bg-[#6B705C] animate-pulse"></span>}
+                  {billingStatus ?? "inactive"}
+                </p>
+              </article>
+              <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Current Tier</p>
+                <p className="text-lg font-medium">{billingPlanLabel}</p>
+              </article>
+              <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Renewal Date</p>
+                <p className="text-sm font-medium">
+                  {billingPeriodEnd ? new Date(billingPeriodEnd).toLocaleDateString() : "-"}
+                </p>
+              </article>
+              <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Cycle Management</p>
+                <p className="text-sm font-medium">
+                  {billingCancelAtPeriodEnd ? "Terminating at end" : "Active Auto-renew"}
+                </p>
+              </article>
+            </div>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            {isOwner ? (
-              <>
-                <Link
-                  href="/checkout?plan=starter"
-                  className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
-                >
-                  Starter
-                </Link>
-                <Link
-                  href="/checkout?plan=pro"
-                  className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
-                >
-                  Pro
-                </Link>
-                <Link
-                  href="/checkout?plan=premium"
-                  className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
-                >
-                  Premium
-                </Link>
-              </>
-            ) : null}
-          </div>
-        </section>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {isOwner ? (
+                <>
+                  <Link
+                    href="/checkout?plan=starter"
+                    className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
+                  >
+                    Starter
+                  </Link>
+                  <Link
+                    href="/checkout?plan=pro"
+                    className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
+                  >
+                    Pro
+                  </Link>
+                  <Link
+                    href="/checkout?plan=premium"
+                    className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
+                  >
+                    Premium
+                  </Link>
+                </>
+              ) : null}
+            </div>
+          </section>
+        )}
 
         <section className="mt-8 grid gap-4 md:grid-cols-3 stagger-children">
           <article className="metric-card bg-white border border-[#EBE8E0] p-6 rounded-sm shadow-sm">
@@ -595,649 +597,655 @@ export default async function DashboardPage({
           </div>
         </section>
 
-        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-6 pb-6 border-b border-[#F7F6F2]">
-            <div>
-              <h2 className="text-xl font-light tracking-tight">Agent Activity & Audit</h2>
-              <p className="mt-2 text-sm text-[#716E68]">
-                Recent 30-day operational telemetry for automated workflows.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <a
-                href="/api/audit/export?format=json&days=30"
-                className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-[#FDFCFB] transition-all uppercase tracking-widest"
-              >
-                Export JSON
-              </a>
-              <a
-                href="/api/audit/export?format=csv&days=30"
-                className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-[#FDFCFB] transition-all uppercase tracking-widest"
-              >
-                Export CSV
-              </a>
-            </div>
-          </div>
-
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
-            <article>
-              <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-4">Autonomous Runs</h3>
-              <div className="space-y-3">
-                {agentRunsFeed.map((run) => (
-                  <div
-                    key={`agent-run-${run.id}`}
-                    className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-4 py-3 shadow-sm hover:border-[#D5D1C6] transition-all"
-                  >
-                    <div className="flex justify-between items-start">
-                      <p className="text-xs font-medium text-[#2C2A26]">
-                        <span className="uppercase tracking-wider text-[10px] text-[#A19D94] mr-2">{run.run_type}</span>
-                        {run.status}
-                      </p>
-                    </div>
-                    <p className="mt-1 text-[10px] text-[#A19D94] uppercase tracking-tight">
-                      {run.id.slice(0, 8)} • {new Date(run.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                ))}
-                {!agentRunsFeed.length && (
-                  <div className="rounded border border-dashed border-[#EBE8E0] px-4 py-6 text-center">
-                    <p className="text-xs text-[#A19D94]">No records in the current window.</p>
-                  </div>
-                )}
+        {!isZen && (
+          <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-6 pb-6 border-b border-[#F7F6F2]">
+              <div>
+                <h2 className="text-xl font-light tracking-tight">Agent Activity & Audit</h2>
+                <p className="mt-2 text-sm text-[#716E68]">
+                  Recent 30-day operational telemetry for automated workflows.
+                </p>
               </div>
-            </article>
-
-            <article>
-              <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-4">Intelligence Signals</h3>
-              <div className="space-y-3">
-                {agentToolCallsFeed.map((call) => (
-                  <div
-                    key={`agent-call-${call.id}`}
-                    className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-4 py-3 shadow-sm hover:border-[#D5D1C6] transition-all"
-                  >
-                    <div className="flex justify-between items-start">
-                      <p className="text-xs font-medium text-[#2C2A26]">
-                        <span className="uppercase tracking-wider text-[10px] text-[#A19D94] mr-2">{call.tool_name}</span>
-                        {call.status}
-                      </p>
-                      <span className="text-[10px] text-[#A19D94]">{call.duration_ms ?? "-"}ms</span>
-                    </div>
-                    <p className="mt-1 text-[10px] text-[#A19D94] uppercase tracking-tight">
-                      {call.run_id.slice(0, 8)} • {new Date(call.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                ))}
-                {!agentToolCallsFeed.length && (
-                  <div className="rounded border border-dashed border-[#EBE8E0] px-4 py-6 text-center">
-                    <p className="text-xs text-[#A19D94]">No signal records detected.</p>
-                  </div>
-                )}
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
-          <div className="mb-8">
-            <h2 className="text-xl font-light tracking-tight">Connected Identity Providers</h2>
-            <p className="mt-2 text-sm text-[#716E68]">
-              Authentication state for enterprise resource access.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Google Workspace</p>
-              <p className={hasGoogleAuth ? "text-sm font-medium text-[#6B705C]" : "text-sm font-medium text-[#A19D94]"}>
-                {hasGoogleAuth ? "✓ Authenticated" : "Not connected"}
-              </p>
-            </div>
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Microsoft 365</p>
-              <p className={hasMicrosoftAuth ? "text-sm font-medium text-[#6B705C]" : "text-sm font-medium text-[#A19D94]"}>
-                {hasMicrosoftAuth ? "✓ Authenticated" : "Not connected"}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
-          <div className="mb-8 pb-6 border-b border-[#F7F6F2]">
-            <h2 className="text-xl font-light tracking-tight">Team & Governance</h2>
-            <p className="mt-2 text-sm text-[#716E68]">
-              Manage firm permissions and administrative access.
-            </p>
-          </div>
-
-          <div className="table-shell">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Member</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Permission</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F7F6F2]">
-                {(firmMembers ?? []).map((member) => (
-                  <tr key={member.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium text-[#2C2A26]">{profileMap.get(member.user_id) ?? member.user_id}</span>
-                        {member.user_id === user.id && (
-                          <span className="px-2 py-0.5 bg-[#EFECE5] text-[#A19D94] text-[9px] uppercase tracking-widest font-bold rounded-full">
-                            Personal
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
-                        {member.role}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      {isOwner ? (
-                        <div className="flex items-center gap-4">
-                          <form action={updateMemberRoleAction} className="flex gap-2">
-                            <input type="hidden" name="firm_id" value={primary.firm_id} />
-                            <input type="hidden" name="membership_id" value={member.id} />
-                            <select
-                              name="new_role"
-                              defaultValue={member.role}
-                              className="px-2 py-1 bg-[#F7F6F2] border border-[#EBE8E0] text-[11px] rounded outline-none appearance-none cursor-pointer hover:bg-white transition-colors"
-                            >
-                              <option value="owner">Owner</option>
-                              <option value="attorney">Attorney</option>
-                              <option value="ops">Ops</option>
-                            </select>
-                            <button
-                              type="submit"
-                              className="px-3 py-1 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded uppercase tracking-wider"
-                            >
-                              Save
-                            </button>
-                          </form>
-                          <form action={removeMemberAction}>
-                            <input type="hidden" name="firm_id" value={primary.firm_id} />
-                            <input type="hidden" name="membership_id" value={member.id} />
-                            <button
-                              type="submit"
-                              className="px-3 py-1 border border-[#FEE2E2] text-red-600 text-[10px] font-medium rounded hover:bg-red-50 transition-colors uppercase tracking-wider disabled:opacity-30 disabled:cursor-not-allowed"
-                              disabled={member.user_id === user.id}
-                            >
-                              Remove
-                            </button>
-                          </form>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">Read Only</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {isOwner && (
-            <div className="mt-8 pt-8 border-t border-[#F7F6F2]">
-              <h3 className="text-sm font-medium mb-4 text-[#2C2A26]">Invite Counsel</h3>
-              <form action={inviteMemberAction} className="grid gap-3 md:grid-cols-4">
-                <input type="hidden" name="firm_id" value={primary.firm_id} />
-                <label className="md:col-span-2">
-                  <input
-                    className="input-base"
-                    name="invite_email"
-                    type="email"
-                    placeholder="Enter email address..."
-                    required
-                  />
-                </label>
-                <label>
-                  <select
-                    className="input-base cursor-pointer"
-                    name="invite_role"
-                    defaultValue="attorney"
-                  >
-                    <option value="attorney">Attorney</option>
-                    <option value="ops">Operation</option>
-                  </select>
-                </label>
-                <button
-                  type="submit"
-                  className="btn-primary"
+              <div className="flex gap-2">
+                <a
+                  href="/api/audit/export?format=json&days=30"
+                  className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-[#FDFCFB] transition-all uppercase tracking-widest"
                 >
-                  Send Invitation
-                </button>
-              </form>
+                  Export JSON
+                </a>
+                <a
+                  href="/api/audit/export?format=csv&days=30"
+                  className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-[#FDFCFB] transition-all uppercase tracking-widest"
+                >
+                  Export CSV
+                </a>
+              </div>
             </div>
-          )}
 
-          <div className="mt-8 table-shell">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Email</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Role</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Expires</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F7F6F2]">
-                {(invitations ?? []).map((invite) => (
-                  <tr key={invite.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
-                    <td className="px-5 py-4 text-[#2C2A26]">{invite.email}</td>
-                    <td className="px-5 py-4">
-                      <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
-                        {invite.role}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-[#A19D94]">
-                      <span className={invite.status === "pending" ? "text-[#B79455] font-medium" : ""}>
-                        {invite.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-[#A19D94] text-xs">
-                      {new Date(invite.expires_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-5 py-4">
-                      {isOwner && invite.status === "pending" ? (
-                        <div className="flex gap-2">
-                          <form action={resendInviteAction}>
-                            <input type="hidden" name="firm_id" value={primary.firm_id} />
-                            <input type="hidden" name="invitation_id" value={invite.id} />
-                            <button
-                              type="submit"
-                              className="px-3 py-1 bg-[#EFECE5] text-[#716E68] text-[10px] font-medium rounded hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider"
-                            >
-                              Resend
-                            </button>
-                          </form>
-                          <form action={revokeInviteAction}>
-                            <input type="hidden" name="firm_id" value={primary.firm_id} />
-                            <input type="hidden" name="invitation_id" value={invite.id} />
-                            <button
-                              type="submit"
-                              className="px-3 py-1 border border-[#FEE2E2] text-red-600 text-[10px] font-medium rounded hover:bg-red-50 transition-colors uppercase tracking-wider"
-                            >
-                              Revoke
-                            </button>
-                          </form>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {!invitations?.length && (
-                  <tr>
-                    <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
-                      No active invitations
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
-          <h2 className="text-xl font-light tracking-tight mb-8">Enrichment Status Queue</h2>
-          <div className="table-shell">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Prospect</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Provider</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Telemetry</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F7F6F2]">
-                {(enrichmentRuns ?? []).map((run) => {
-                  const actionRoute =
-                    run.provider === "tavily"
-                      ? "/api/prospects/enrich/tavily"
-                      : run.provider === "firecrawl"
-                        ? "/api/prospects/enrich/firecrawl"
-                        : run.provider === "exa_search" || run.provider === "exa_contents"
-                          ? "/api/prospects/enrich/exa"
-                          : run.provider === "vibe"
-                            ? "/api/prospects/enrich/vibe"
-                            : "";
-
-                  return (
-                    <tr key={run.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
-                      <td className="px-5 py-4 text-[#2C2A26]">
-                        {run.prospect_id ? (enrichmentProspectMap.get(run.prospect_id) ?? run.prospect_id) : "-"}
-                      </td>
-                      <td className="px-5 py-4 capitalize text-[#716E68] text-xs font-medium">{run.provider}</td>
-                      <td className="px-5 py-4">
-                        <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
+            <div className="mt-8 grid gap-6 md:grid-cols-2">
+              <article>
+                <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-4">Autonomous Runs</h3>
+                <div className="space-y-3">
+                  {agentRunsFeed.map((run) => (
+                    <div
+                      key={`agent-run-${run.id}`}
+                      className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-4 py-3 shadow-sm hover:border-[#D5D1C6] transition-all"
+                    >
+                      <div className="flex justify-between items-start">
+                        <p className="text-xs font-medium text-[#2C2A26]">
+                          <span className="uppercase tracking-wider text-[10px] text-[#A19D94] mr-2">{run.run_type}</span>
                           {run.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-[10px] text-[#A19D94] max-w-xs">
-                        {run.error_message ? (
-                          run.error_message.includes("429") ? "Provider Rate Limit" :
-                          run.error_message.includes("Timeout") ? "Extraction Timeout" :
-                          run.error_message.slice(0, 100)
-                        ) : "Nominal"}
-                      </td>
-                      <td className="px-5 py-4">
-                        {run.status === "failed" && run.prospect_id && actionRoute ? (
-                          <form action={actionRoute} method="post">
-                            <input type="hidden" name="firm_id" value={primary.firm_id} />
-                            <input type="hidden" name="prospect_id" value={run.prospect_id} />
-                            {run.provider === "exa_search" && <input type="hidden" name="mode" value="search" />}
-                            {run.provider === "exa_contents" && <input type="hidden" name="mode" value="contents" />}
-                            <button
-                              type="submit"
-                              className="px-3 py-1 bg-[#EFECE5] text-[#716E68] text-[10px] font-medium rounded hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider"
-                            >
-                              Retry
-                            </button>
-                          </form>
-                        ) : (
-                          <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
-                        )}
-                      </td>
+                        </p>
+                      </div>
+                      <p className="mt-1 text-[10px] text-[#A19D94] uppercase tracking-tight">
+                        {run.id.slice(0, 8)} • {new Date(run.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                  {!agentRunsFeed.length && (
+                    <div className="rounded border border-dashed border-[#EBE8E0] px-4 py-6 text-center">
+                      <p className="text-xs text-[#A19D94]">No records in the current window.</p>
+                    </div>
+                  )}
+                </div>
+              </article>
+
+              <article>
+                <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-4">Intelligence Signals</h3>
+                <div className="space-y-3">
+                  {agentToolCallsFeed.map((call) => (
+                    <div
+                      key={`agent-call-${call.id}`}
+                      className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-4 py-3 shadow-sm hover:border-[#D5D1C6] transition-all"
+                    >
+                      <div className="flex justify-between items-start">
+                        <p className="text-xs font-medium text-[#2C2A26]">
+                          <span className="uppercase tracking-wider text-[10px] text-[#A19D94] mr-2">{call.tool_name}</span>
+                          {call.status}
+                        </p>
+                        <span className="text-[10px] text-[#A19D94]">{call.duration_ms ?? "-"}ms</span>
+                      </div>
+                      <p className="mt-1 text-[10px] text-[#A19D94] uppercase tracking-tight">
+                        {call.run_id.slice(0, 8)} • {new Date(call.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                  {!agentToolCallsFeed.length && (
+                    <div className="rounded border border-dashed border-[#EBE8E0] px-4 py-6 text-center">
+                      <p className="text-xs text-[#A19D94]">No signal records detected.</p>
+                    </div>
+                  )}
+                </div>
+              </article>
+            </div>
+          </section>
+        )}
+
+        {!isZen && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+              <div className="mb-8">
+                <h2 className="text-xl font-light tracking-tight">Connected Identity Providers</h2>
+                <p className="mt-2 text-sm text-[#716E68]">
+                  Authentication state for enterprise resource access.
+                </p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Google Workspace</p>
+                  <p className={hasGoogleAuth ? "text-sm font-medium text-[#6B705C]" : "text-sm font-medium text-[#A19D94]"}>
+                    {hasGoogleAuth ? "✓ Authenticated" : "Not connected"}
+                  </p>
+                </div>
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Microsoft 365</p>
+                  <p className={hasMicrosoftAuth ? "text-sm font-medium text-[#6B705C]" : "text-sm font-medium text-[#A19D94]"}>
+                    {hasMicrosoftAuth ? "✓ Authenticated" : "Not connected"}
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+              <div className="mb-8 pb-6 border-b border-[#F7F6F2]">
+                <h2 className="text-xl font-light tracking-tight">Team & Governance</h2>
+                <p className="mt-2 text-sm text-[#716E68]">
+                  Manage firm permissions and administrative access.
+                </p>
+              </div>
+
+              <div className="table-shell">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Member</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Permission</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
                     </tr>
-                  );
-                })}
-                {!enrichmentRuns?.length && (
-                  <tr>
-                    <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
-                      No active enrichment tasks
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                  </thead>
+                  <tbody className="divide-y divide-[#F7F6F2]">
+                    {(firmMembers ?? []).map((member) => (
+                      <tr key={member.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <span className="font-medium text-[#2C2A26]">{profileMap.get(member.user_id) ?? member.user_id}</span>
+                            {member.user_id === user.id && (
+                              <span className="px-2 py-0.5 bg-[#EFECE5] text-[#A19D94] text-[9px] uppercase tracking-widest font-bold rounded-full">
+                                Personal
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
+                            {member.role}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4">
+                          {isOwner ? (
+                            <div className="flex items-center gap-4">
+                              <form action={updateMemberRoleAction} className="flex gap-2">
+                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="membership_id" value={member.id} />
+                                <select
+                                  name="new_role"
+                                  defaultValue={member.role}
+                                  className="px-2 py-1 bg-[#F7F6F2] border border-[#EBE8E0] text-[11px] rounded outline-none appearance-none cursor-pointer hover:bg-white transition-colors"
+                                >
+                                  <option value="owner">Owner</option>
+                                  <option value="attorney">Attorney</option>
+                                  <option value="ops">Ops</option>
+                                </select>
+                                <button
+                                  type="submit"
+                                  className="px-3 py-1 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded uppercase tracking-wider"
+                                >
+                                  Save
+                                </button>
+                              </form>
+                              <form action={removeMemberAction}>
+                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="membership_id" value={member.id} />
+                                <button
+                                  type="submit"
+                                  className="px-3 py-1 border border-[#FEE2E2] text-red-600 text-[10px] font-medium rounded hover:bg-red-50 transition-colors uppercase tracking-wider disabled:opacity-30 disabled:cursor-not-allowed"
+                                  disabled={member.user_id === user.id}
+                                >
+                                  Remove
+                                </button>
+                              </form>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">Read Only</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-6 mb-8">
-            <div>
-              <h2 className="text-xl font-light tracking-tight">Reporting Digest Health</h2>
-              <p className="mt-2 text-sm text-[#716E68]">
-                Weekly orchestration and delivery telemetry for firm-wide insights.
-              </p>
-            </div>
-            <form action="/api/reporting/schedule/weekly" method="post">
-              <button
-                type="submit"
-                className="btn-primary"
-              >
-                Trigger Outbound
-              </button>
-            </form>
-          </div>
+              {isOwner && (
+                <div className="mt-8 pt-8 border-t border-[#F7F6F2]">
+                  <h3 className="text-sm font-medium mb-4 text-[#2C2A26]">Invite Counsel</h3>
+                  <form action={inviteMemberAction} className="grid gap-3 md:grid-cols-4">
+                    <input type="hidden" name="firm_id" value={primary.firm_id} />
+                    <label className="md:col-span-2">
+                      <input
+                        className="input-base"
+                        name="invite_email"
+                        type="email"
+                        placeholder="Enter email address..."
+                        required
+                      />
+                    </label>
+                    <label>
+                      <select
+                        className="input-base cursor-pointer"
+                        name="invite_role"
+                        defaultValue="attorney"
+                      >
+                        <option value="attorney">Attorney</option>
+                        <option value="ops">Operation</option>
+                      </select>
+                    </label>
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                    >
+                      Send Invitation
+                    </button>
+                  </form>
+                </div>
+              )}
 
-          <div
-            className={
-              reportingObservability.degraded
-                ? "mb-8 rounded border border-red-100 bg-red-50/50 px-5 py-4 text-xs text-red-700"
-                : "mb-8 rounded border border-[#EFECE5] bg-[#FDFCFB] px-5 py-4 text-xs text-[#6B705C]"
-            }
-          >
-            <p className="uppercase tracking-widest font-bold mb-1">
-              System Health: {reportingObservability.degraded ? "Issues Detected" : "Nominal"}
-            </p>
-            <p className="text-[#716E68]">
-              {reportingObservability.degraded
-                ? "Delivery failures detected in recent cycles. Manual verification recommended."
-                : "All scheduled reports delivered successfully to firm recipients."}
-            </p>
-            <p className="mt-2 italic font-medium">{reportingObservability.actionHint}</p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-4 mb-8">
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Total Cycles</p>
-              <p className="text-xl font-light tracking-tight text-[#2C2A26]">{reportingRuns?.length ?? 0}</p>
-            </div>
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Failed (Last)</p>
-              <p className={`text-xl font-light tracking-tight ${reportingObservability.failedCount > 0 ? "text-red-600" : "text-[#2C2A26]"}`}>
-                {reportingObservability.failedCount}
-              </p>
-            </div>
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Delivered (Last)</p>
-              <p className="text-xl font-light tracking-tight text-[#2C2A26]">{reportingObservability.sentCount}</p>
-            </div>
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Last Run</p>
-              <p className="text-[11px] font-medium text-[#716E68]">
-                {reportingObservability.lastRunAt
-                  ? new Date(reportingObservability.lastRunAt).toLocaleDateString()
-                  : "N/A"}
-              </p>
-            </div>
-          </div>
-
-          <div className="table-shell">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Reporting Window</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Intelligence Summary</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F7F6F2]">
-                {(reportingRuns ?? []).map((run) => (
-                  <tr key={`reporting-run-${run.id}`} className="hover:bg-[#FDFCFB]/50 transition-colors">
-                    <td className="px-5 py-4 text-xs font-medium text-[#2C2A26]">
-                      {run.week_start} — {run.week_end}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">{run.status}</span>
-                    </td>
-                    <td className="px-5 py-4 text-xs text-[#716E68]">
-                      {run.summary_title ?? "Operational report generated"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-6 mb-8">
-            <div>
-              <h2 className="text-xl font-light tracking-tight">Calendar Synchronization</h2>
-              <p className="mt-2 text-sm text-[#716E68]">
-                Recent engagement events identified via connected workspace accounts.
-              </p>
-            </div>
-            <Link
-              href="/pipeline"
-              className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-[#FDFCFB] transition-all uppercase tracking-widest flex items-center"
-            >
-              Open Pipeline
-            </Link>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3 mb-8">
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Synced Events (30d)</p>
-              <p className="text-xl font-light tracking-tight text-[#2C2A26]">{recentCalendarEvents?.length ?? 0}</p>
-            </div>
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Video Sessions</p>
-              <p className="text-xl font-light tracking-tight text-[#2C2A26]">
-                {(recentCalendarEvents ?? []).filter((event) => Boolean(event.meeting_url)).length}
-              </p>
-            </div>
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Cancellations</p>
-              <p className="text-xl font-light tracking-tight text-[#2C2A26]">
-                {(recentCalendarEvents ?? []).filter((event) => event.status === "cancelled").length}
-              </p>
-            </div>
-          </div>
-
-          <div className="table-shell">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Prospect</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Schedule</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Access</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F7F6F2]">
-                {recentMeetingLinks.map((event) => (
-                  <tr key={`calendar-linked-${event.id}`} className="hover:bg-[#FDFCFB]/50 transition-colors">
-                    <td className="px-5 py-4 font-medium text-[#2C2A26]">
-                      {calendarProspectMap.get(event.prospect_id) ?? event.prospect_id}
-                    </td>
-                    <td className="px-5 py-4 text-xs text-[#716E68]">
-                      {new Date(event.starts_at).toLocaleString()}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">{event.status}</span>
-                    </td>
-                    <td className="px-5 py-4">
-                      {event.meeting_url ? (
-                        <a
-                          className="px-3 py-1 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded uppercase tracking-wider block text-center"
-                          href={event.meeting_url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Join
-                        </a>
-                      ) : (
-                        <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {!recentMeetingLinks.length && (
-                  <tr>
-                    <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
-                      No synced engagements detected
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-6 mb-8">
-            <div>
-              <h2 className="text-xl font-light tracking-tight">Research Orchestrator</h2>
-              <p className="mt-2 text-sm text-[#716E68]">
-                Orchestrate intelligence runs across the full prospect dataset.
-              </p>
-            </div>
-            <form action="/api/research/runs" method="post">
-              <input type="hidden" name="firm_id" value={primary.firm_id} />
-              <button
-                type="submit"
-                className="btn-primary"
-              >
-                Trigger All
-              </button>
-            </form>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3 mb-8">
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Active Runs</p>
-              <p className="text-xl font-light tracking-tight text-[#2C2A26]">{scheduledRuns.length}</p>
-            </div>
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Run Failures</p>
-              <p className={`text-xl font-light tracking-tight ${scheduledFailedCount > 0 ? "text-red-600" : "text-[#2C2A26]"}`}>
-                {scheduledFailedCount}
-              </p>
-            </div>
-            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Last Sync</p>
-              <p className="text-[11px] font-medium text-[#716E68]">
-                {latestScheduledRun ? new Date(latestScheduledRun.created_at).toLocaleDateString() : "N/A"}
-              </p>
-            </div>
-          </div>
-
-          <div className="table-shell">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Job ID</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Trigger</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Throughput</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F7F6F2]">
-                {(researchRuns ?? []).map((run) => {
-                  const summary =
-                    run.run_summary && typeof run.run_summary === "object"
-                      ? (run.run_summary as Record<string, unknown>)
-                      : {};
-                  const totalProspects = Number(summary.total_prospects ?? 0);
-                  const successCount = Number(summary.provider_success_count ?? 0);
-                  const failedCount = Number(summary.provider_failure_count ?? 0);
-
-                  return (
-                    <tr key={run.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
-                      <td className="px-5 py-4 font-mono text-[10px] text-[#A19D94]">{run.id.slice(0, 8)}</td>
-                      <td className="px-5 py-4 capitalize text-xs text-[#716E68]">
-                        {run.trigger_type}
-                        {run.retry_count > 0 ? ` (${run.retry_count})` : ""}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
-                          {run.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-[10px] text-[#A19D94]">
-                        S: {successCount} | F: {failedCount} | T: {totalProspects}
-                      </td>
-                      <td className="px-5 py-4">
-                        {run.status === "failed" ? (
-                          <form action="/api/research/runs" method="post">
-                            <input type="hidden" name="firm_id" value={primary.firm_id} />
-                            <input type="hidden" name="retry_run_id" value={run.id} />
-                            <button
-                              type="submit"
-                              className="px-3 py-1 bg-[#EFECE5] text-[#716E68] text-[10px] font-medium rounded hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider"
-                            >
-                              Retry
-                            </button>
-                          </form>
-                        ) : (
-                          <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
-                        )}
-                      </td>
+              <div className="mt-8 table-shell">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Email</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Role</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Expires</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
                     </tr>
-                  );
-                })}
-                {!researchRuns?.length && (
-                  <tr>
-                    <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
-                      No historical runs detected
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="divide-y divide-[#F7F6F2]">
+                    {(invitations ?? []).map((invite) => (
+                      <tr key={invite.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                        <td className="px-5 py-4 text-[#2C2A26]">{invite.email}</td>
+                        <td className="px-5 py-4">
+                          <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
+                            {invite.role}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-[#A19D94]">
+                          <span className={invite.status === "pending" ? "text-[#B79455] font-medium" : ""}>
+                            {invite.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-[#A19D94] text-xs">
+                          {new Date(invite.expires_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-5 py-4">
+                          {isOwner && invite.status === "pending" ? (
+                            <div className="flex gap-2">
+                              <form action={resendInviteAction}>
+                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="invitation_id" value={invite.id} />
+                                <button
+                                  type="submit"
+                                  className="px-3 py-1 bg-[#EFECE5] text-[#716E68] text-[10px] font-medium rounded hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider"
+                                >
+                                  Resend
+                                </button>
+                              </form>
+                              <form action={revokeInviteAction}>
+                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="invitation_id" value={invite.id} />
+                                <button
+                                  type="submit"
+                                  className="px-3 py-1 border border-[#FEE2E2] text-red-600 text-[10px] font-medium rounded hover:bg-red-50 transition-colors uppercase tracking-wider"
+                                >
+                                  Revoke
+                                </button>
+                              </form>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {!invitations?.length && (
+                      <tr>
+                        <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
+                          No active invitations
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+              <h2 className="text-xl font-light tracking-tight mb-8">Enrichment Status Queue</h2>
+              <div className="table-shell">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Prospect</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Provider</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Telemetry</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F7F6F2]">
+                    {(enrichmentRuns ?? []).map((run) => {
+                      const actionRoute =
+                        run.provider === "tavily"
+                          ? "/api/prospects/enrich/tavily"
+                          : run.provider === "firecrawl"
+                            ? "/api/prospects/enrich/firecrawl"
+                            : run.provider === "exa_search" || run.provider === "exa_contents"
+                              ? "/api/prospects/enrich/exa"
+                              : run.provider === "vibe"
+                                ? "/api/prospects/enrich/vibe"
+                                : "";
+
+                      return (
+                        <tr key={run.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                          <td className="px-5 py-4 text-[#2C2A26]">
+                            {run.prospect_id ? (enrichmentProspectMap.get(run.prospect_id) ?? run.prospect_id) : "-"}
+                          </td>
+                          <td className="px-5 py-4 capitalize text-[#716E68] text-xs font-medium">{run.provider}</td>
+                          <td className="px-5 py-4">
+                            <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
+                              {run.status}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-[10px] text-[#A19D94] max-w-xs">
+                            {run.error_message ? (
+                              run.error_message.includes("429") ? "Provider Rate Limit" :
+                              run.error_message.includes("Timeout") ? "Extraction Timeout" :
+                              run.error_message.slice(0, 100)
+                            ) : "Nominal"}
+                          </td>
+                          <td className="px-5 py-4">
+                            {run.status === "failed" && run.prospect_id && actionRoute ? (
+                              <form action={actionRoute} method="post">
+                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="prospect_id" value={run.prospect_id} />
+                                {run.provider === "exa_search" && <input type="hidden" name="mode" value="search" />}
+                                {run.provider === "exa_contents" && <input type="hidden" name="mode" value="contents" />}
+                                <button
+                                  type="submit"
+                                  className="px-3 py-1 bg-[#EFECE5] text-[#716E68] text-[10px] font-medium rounded hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider"
+                                >
+                                  Retry
+                                </button>
+                              </form>
+                            ) : (
+                              <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {!enrichmentRuns?.length && (
+                      <tr>
+                        <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
+                          No active enrichment tasks
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-6 mb-8">
+                <div>
+                  <h2 className="text-xl font-light tracking-tight">Reporting Digest Health</h2>
+                  <p className="mt-2 text-sm text-[#716E68]">
+                    Weekly orchestration and delivery telemetry for firm-wide insights.
+                  </p>
+                </div>
+                <form action="/api/reporting/schedule/weekly" method="post">
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                  >
+                    Trigger Outbound
+                  </button>
+                </form>
+              </div>
+
+              <div
+                className={
+                  reportingObservability.degraded
+                    ? "mb-8 rounded border border-red-100 bg-red-50/50 px-5 py-4 text-xs text-red-700"
+                    : "mb-8 rounded border border-[#EFECE5] bg-[#FDFCFB] px-5 py-4 text-xs text-[#6B705C]"
+                }
+              >
+                <p className="uppercase tracking-widest font-bold mb-1">
+                  System Health: {reportingObservability.degraded ? "Issues Detected" : "Nominal"}
+                </p>
+                <p className="text-[#716E68]">
+                  {reportingObservability.degraded
+                    ? "Delivery failures detected in recent cycles. Manual verification recommended."
+                    : "All scheduled reports delivered successfully to firm recipients."}
+                </p>
+                <p className="mt-2 italic font-medium">{reportingObservability.actionHint}</p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-4 mb-8">
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Total Cycles</p>
+                  <p className="text-xl font-light tracking-tight text-[#2C2A26]">{reportingRuns?.length ?? 0}</p>
+                </div>
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Failed (Last)</p>
+                  <p className={`text-xl font-light tracking-tight ${reportingObservability.failedCount > 0 ? "text-red-600" : "text-[#2C2A26]"}`}>
+                    {reportingObservability.failedCount}
+                  </p>
+                </div>
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Delivered (Last)</p>
+                  <p className="text-xl font-light tracking-tight text-[#2C2A26]">{reportingObservability.sentCount}</p>
+                </div>
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Last Run</p>
+                  <p className="text-[11px] font-medium text-[#716E68]">
+                    {reportingObservability.lastRunAt
+                      ? new Date(reportingObservability.lastRunAt).toLocaleDateString()
+                      : "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="table-shell">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Reporting Window</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Intelligence Summary</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F7F6F2]">
+                    {(reportingRuns ?? []).map((run) => (
+                      <tr key={`reporting-run-${run.id}`} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                        <td className="px-5 py-4 text-xs font-medium text-[#2C2A26]">
+                          {run.week_start} — {run.week_end}
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">{run.status}</span>
+                        </td>
+                        <td className="px-5 py-4 text-xs text-[#716E68]">
+                          {run.summary_title ?? "Operational report generated"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-6 mb-8">
+                <div>
+                  <h2 className="text-xl font-light tracking-tight">Calendar Synchronization</h2>
+                  <p className="mt-2 text-sm text-[#716E68]">
+                    Recent engagement events identified via connected workspace accounts.
+                  </p>
+                </div>
+                <Link
+                  href="/pipeline"
+                  className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-[#FDFCFB] transition-all uppercase tracking-widest flex items-center"
+                >
+                  Open Pipeline
+                </Link>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3 mb-8">
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Synced Events (30d)</p>
+                  <p className="text-xl font-light tracking-tight text-[#2C2A26]">{recentCalendarEvents?.length ?? 0}</p>
+                </div>
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Video Sessions</p>
+                  <p className="text-xl font-light tracking-tight text-[#2C2A26]">
+                    {(recentCalendarEvents ?? []).filter((event) => Boolean(event.meeting_url)).length}
+                  </p>
+                </div>
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Cancellations</p>
+                  <p className="text-xl font-light tracking-tight text-[#2C2A26]">
+                    {(recentCalendarEvents ?? []).filter((event) => event.status === "cancelled").length}
+                  </p>
+                </div>
+              </div>
+
+              <div className="table-shell">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Prospect</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Schedule</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Access</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F7F6F2]">
+                    {recentMeetingLinks.map((event) => (
+                      <tr key={`calendar-linked-${event.id}`} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                        <td className="px-5 py-4 font-medium text-[#2C2A26]">
+                          {calendarProspectMap.get(event.prospect_id) ?? event.prospect_id}
+                        </td>
+                        <td className="px-5 py-4 text-xs text-[#716E68]">
+                          {new Date(event.starts_at).toLocaleString()}
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">{event.status}</span>
+                        </td>
+                        <td className="px-5 py-4">
+                          {event.meeting_url ? (
+                            <a
+                              className="px-3 py-1 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded uppercase tracking-wider block text-center"
+                              href={event.meeting_url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Join
+                            </a>
+                          ) : (
+                            <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {!recentMeetingLinks.length && (
+                      <tr>
+                        <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
+                          No synced engagements detected
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-6 mb-8">
+                <div>
+                  <h2 className="text-xl font-light tracking-tight">Research Orchestrator</h2>
+                  <p className="mt-2 text-sm text-[#716E68]">
+                    Orchestrate intelligence runs across the full prospect dataset.
+                  </p>
+                </div>
+                <form action="/api/research/runs" method="post">
+                  <input type="hidden" name="firm_id" value={primary.firm_id} />
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                  >
+                    Trigger All
+                  </button>
+                </form>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3 mb-8">
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Active Runs</p>
+                  <p className="text-xl font-light tracking-tight text-[#2C2A26]">{scheduledRuns.length}</p>
+                </div>
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Run Failures</p>
+                  <p className={`text-xl font-light tracking-tight ${scheduledFailedCount > 0 ? "text-red-600" : "text-[#2C2A26]"}`}>
+                    {scheduledFailedCount}
+                  </p>
+                </div>
+                <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Last Sync</p>
+                  <p className="text-[11px] font-medium text-[#716E68]">
+                    {latestScheduledRun ? new Date(latestScheduledRun.created_at).toLocaleDateString() : "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="table-shell">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Job ID</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Trigger</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Throughput</th>
+                      <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F7F6F2]">
+                    {(researchRuns ?? []).map((run) => {
+                      const summary =
+                        run.run_summary && typeof run.run_summary === "object"
+                          ? (run.run_summary as Record<string, unknown>)
+                          : {};
+                      const totalProspects = Number(summary.total_prospects ?? 0);
+                      const successCount = Number(summary.provider_success_count ?? 0);
+                      const failedCount = Number(summary.provider_failure_count ?? 0);
+
+                      return (
+                        <tr key={run.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                          <td className="px-5 py-4 font-mono text-[10px] text-[#A19D94]">{run.id.slice(0, 8)}</td>
+                          <td className="px-5 py-4 capitalize text-xs text-[#716E68]">
+                            {run.trigger_type}
+                            {run.retry_count > 0 ? ` (${run.retry_count})` : ""}
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
+                              {run.status}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-[10px] text-[#A19D94]">
+                            S: {successCount} | F: {failedCount} | T: {totalProspects}
+                          </td>
+                          <td className="px-5 py-4">
+                            {run.status === "failed" ? (
+                              <form action="/api/research/runs" method="post">
+                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="retry_run_id" value={run.id} />
+                                <button
+                                  type="submit"
+                                  className="px-3 py-1 bg-[#EFECE5] text-[#716E68] text-[10px] font-medium rounded hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider"
+                                >
+                                  Retry
+                                </button>
+                              </form>
+                            ) : (
+                              <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {!researchRuns?.length && (
+                      <tr>
+                        <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
+                          No historical runs detected
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
-        </section>
+        )}
       </div>
     </AppShell>
   );

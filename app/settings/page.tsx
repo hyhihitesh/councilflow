@@ -88,6 +88,7 @@ export default async function SettingsPage({
     <AppShell
       title="Settings"
       description={`Firm: ${firm?.name ?? "Unknown"} | Workspace profile, integrations, and billing.`}
+      userEmail={user.email}
       billingAccessState={accessState.ok ? accessState.accessState : "active"}
       billingAccessContext={
         accessState.ok
@@ -98,23 +99,14 @@ export default async function SettingsPage({
           : undefined
       }
       currentPath="/settings"
-      mobileCta={{ href: "/dashboard", label: "Open Command Center" }}
       headerActions={
         <>
           <Link
             href="/dashboard"
-            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded-sm hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-widest"
           >
             Dashboard
           </Link>
-          <form action={signOutAction} className="ml-2">
-            <button
-              type="submit"
-              className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
-            >
-              Sign out
-            </button>
-          </form>
         </>
       }
     >
