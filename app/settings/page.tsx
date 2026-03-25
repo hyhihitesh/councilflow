@@ -149,12 +149,12 @@ export default async function SettingsPage({
                 {googleConnected ? "Connected" : "Not connected"}
               </p>
               {!googleConnected ? (
-                <Link
-                  className="mt-2 inline-block rounded-md border border-white/20 bg-[#111827] px-2.5 py-1 text-xs text-[#CBD5E1]"
-                  href="/auth/oauth?provider=google&next=%2Fsettings"
+                <button
+                  disabled
+                  className="mt-2 inline-block rounded-md border border-white/20 bg-[#111827] px-2.5 py-1 text-xs text-[#CBD5E1] opacity-50 cursor-not-allowed"
                 >
-                  Connect Google
-                </Link>
+                  Connect Google (Coming Soon)
+                </button>
               ) : null}
             </div>
             <div className="rounded-lg border border-white/10 bg-[#0D1117] px-3 py-2">
@@ -163,12 +163,12 @@ export default async function SettingsPage({
                 {microsoftConnected ? "Connected" : "Not connected"}
               </p>
               {!microsoftConnected ? (
-                <Link
-                  className="mt-2 inline-block rounded-md border border-white/20 bg-[#111827] px-2.5 py-1 text-xs text-[#CBD5E1]"
-                  href="/auth/oauth?provider=microsoft&next=%2Fsettings"
+                <button
+                  disabled
+                  className="mt-2 inline-block rounded-md border border-white/20 bg-[#111827] px-2.5 py-1 text-xs text-[#CBD5E1] opacity-50 cursor-not-allowed"
                 >
-                  Connect Microsoft
-                </Link>
+                  Connect Microsoft (Coming Soon)
+                </button>
               ) : null}
             </div>
             <div className="rounded-lg border border-white/10 bg-[#0D1117] px-3 py-2">

@@ -162,6 +162,7 @@ export async function POST(request: Request) {
 
   const result = await runProviderEnrichment({
     supabase,
+    // @ts-expect-error: Deprecated provider
     provider: "tavily",
     firmId: prospect.firm_id,
     prospect,

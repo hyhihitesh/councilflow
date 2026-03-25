@@ -9,7 +9,7 @@ type ProspectContext = {
 };
 
 type DraftVariant = "direct" | "warm" | "content_led";
-type WriterProvider = "openai" | "anthropic";
+type WriterProvider = "openai" | "anthropic" | "gemini";
 
 export type GeneratedDraft = {
   variant: DraftVariant;
@@ -40,7 +40,7 @@ function localDraftTemplate(prospect: ProspectContext, variant: DraftVariant): G
   const company = prospect.company_name;
 
   const subjectByVariant: Record<DraftVariant, string> = {
-    direct: `${company}: quick intro from inhumans.io`,
+    direct: `${company}: quick intro from CouncilFlow`,
     warm: `Idea for ${company}'s ${role} priorities`,
     content_led: `A short resource for ${company} (${role})`,
   };
@@ -52,7 +52,7 @@ function localDraftTemplate(prospect: ProspectContext, variant: DraftVariant): G
   };
 
   const close =
-    "\n\nIf helpful, I can share a concise 15-minute walkthrough tailored to your current priorities.\n\nBest,\ninhumans.io Team";
+    "\n\nIf helpful, I can share a concise 15-minute walkthrough tailored to your current priorities.\n\nBest,\nCouncilFlow Team";
 
   return {
     variant,
@@ -96,6 +96,7 @@ function parseDraftsFromModelText(text: string) {
 
 function getWriterProvider(): WriterProvider {
   const value = (process.env.OUTREACH_WRITER_PROVIDER ?? "openai").toLowerCase();
+  if (value === "gemini") return "gemini";
   return value === "anthropic" ? "anthropic" : "openai";
 }
 
@@ -225,6 +226,65 @@ Rules:
   return parseDraftsFromModelText(text);
 }
 
+async function generateWithGemini(prospect: ProspectContext) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  const timeoutMs = Math.max(1000, Number(process.env.OUTREACH_WRITER_TIMEOUT_MS ?? "15000"));
+  const model = process.env.GEMINI_WRITER_MODEL ?? "gemini-2.5-flash";
+
+  const prompt = `
+Generate exactly 3 outreach drafts in JSON.
+Target company: ${prospect.company_name}
+Target domain: ${prospect.domain ?? "unknown"}
+Contact name: ${prospect.primary_contact_name ?? "there"}
+Contact role: ${prospect.primary_contact_title ?? "legal stakeholder"}
+
+Rules:
+1) Variants: direct, warm, content_led
+2) Keep each body under 170 words
+3) No legal advice, no guaranteed outcomes
+4) Output valid JSON with key "drafts"
+`.trim();
+
+  const response = await fetchWithTimeout(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.4
+        }
+      }),
+    },
+    timeoutMs,
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Writer model request failed (${response.status}): ${text.slice(0, 220)}`);
+  }
+
+  const payload = await response.json() as {
+    candidates?: Array<{
+      content?: {
+        parts?: Array<{ text?: string }>
+      }
+    }>
+  };
+  
+  const text = payload.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  return parseDraftsFromModelText(text);
+}
+
 export async function generateOutreachDrafts(prospect: ProspectContext) {
   logResearchEvent("outreach_writer_generate_start", {
     company_name: prospect.company_name,
@@ -233,8 +293,14 @@ export async function generateOutreachDrafts(prospect: ProspectContext) {
 
   try {
     const provider = getWriterProvider();
-    const providerDrafts =
-      provider === "openai" ? await generateWithOpenAI(prospect) : await generateWithClaude(prospect);
+    let providerDrafts;
+    if (provider === "gemini") {
+      providerDrafts = await generateWithGemini(prospect);
+    } else if (provider === "anthropic") {
+      providerDrafts = await generateWithClaude(prospect);
+    } else {
+      providerDrafts = await generateWithOpenAI(prospect);
+    }
 
     if (providerDrafts && providerDrafts.length > 0) {
       const byVariant = new Map(

@@ -19,7 +19,7 @@ export default async function SignInPage({
       <main className="mx-auto grid min-h-screen w-full max-w-5xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-2 md:py-20">
         <section className="flex flex-col justify-center">
           <p className="text-xs uppercase tracking-[0.2em] text-[#94A3B8]">
-            inhumans.io
+            CouncilFlow
           </p>
           <h1 className="mt-3 text-4xl font-semibold leading-tight">
             Sign in to continue your Sprint 2 setup.
@@ -50,15 +50,12 @@ export default async function SignInPage({
               Continue with OAuth
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
-              <Link className="btn-base btn-ghost w-full text-center" href="/auth/oauth?provider=google">
-                Continue with Google
-              </Link>
-              <Link
-                className="btn-base btn-ghost w-full text-center"
-                href="/auth/oauth?provider=microsoft"
-              >
-                Continue with Microsoft
-              </Link>
+              <button disabled className="btn-base btn-ghost w-full text-center opacity-50 cursor-not-allowed">
+                Google (Coming Soon)
+              </button>
+              <button disabled className="btn-base btn-ghost w-full text-center opacity-50 cursor-not-allowed">
+                Microsoft (Coming Soon)
+              </button>
             </div>
           </div>
 
