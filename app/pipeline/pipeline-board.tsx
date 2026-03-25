@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useOptimistic } from "react";
 
 import type { PipelineStage } from "@/lib/followup/rules";
 import type { ThreadSummaryItem } from "@/lib/pipeline/thread-summary";
@@ -62,6 +62,14 @@ export function PipelineBoard(props: {
   calendarByProspect: Record<string, CalendarMarker | undefined>;
 }) {
   const [prospects, setProspects] = useState(props.initialProspects);
+  const [optimisticProspects, addOptimisticProspect] = useOptimistic(
+    prospects,
+    (state: ProspectCard[], update: { id: string; stage: PipelineStage }) =>
+      state.map((p) =>
+        p.id === update.id ? { ...p, pipeline_stage: update.stage } : p
+      )
+  );
+
   const [calendarByProspect, setCalendarByProspect] = useState(props.calendarByProspect);
   const [draggingProspectId, setDraggingProspectId] = useState<string | null>(null);
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
@@ -77,12 +85,12 @@ export function PipelineBoard(props: {
   const [creatingMeeting, setCreatingMeeting] = useState(false);
 
   const byProspect = useMemo(
-    () => new Map(prospects.map((item) => [item.id, item.company_name])),
-    [prospects],
+    () => new Map(optimisticProspects.map((item) => [item.id, item.company_name])),
+    [optimisticProspects],
   );
 
   const selectedProspect = selectedProspectId
-    ? prospects.find((prospect) => prospect.id === selectedProspectId) ?? null
+    ? optimisticProspects.find((prospect) => prospect.id === selectedProspectId) ?? null
     : null;
 
   const selectedThread = selectedProspectId
@@ -103,21 +111,17 @@ export function PipelineBoard(props: {
       attendees?: string[];
     };
   }) {
-    const existing = prospects.find((prospect) => prospect.id === params.prospectId);
+    const existing = optimisticProspects.find((prospect) => prospect.id === params.prospectId);
     if (!existing) return;
 
     if (existing.pipeline_stage === params.toStage) return;
 
-    const previous = prospects;
     setSavingMove(true);
     setFeedback(null);
     setFeedbackError(null);
 
-    setProspects((current) =>
-      current.map((prospect) =>
-        prospect.id === params.prospectId ? { ...prospect, pipeline_stage: params.toStage } : prospect,
-      ),
-    );
+    // Optimistically update the UI immediately
+    addOptimisticProspect({ id: params.prospectId, stage: params.toStage });
 
     try {
       const response = await fetch("/api/pipeline/stage-move", {
@@ -145,10 +149,16 @@ export function PipelineBoard(props: {
       };
 
       if (!response.ok) {
-        setProspects(previous);
         setFeedbackError(payload.error?.message ?? "Failed to move stage");
         return;
       }
+
+      // Update actual state on success
+      setProspects((current) =>
+        current.map((prospect) =>
+          prospect.id === params.prospectId ? { ...prospect, pipeline_stage: params.toStage } : prospect,
+        ),
+      );
 
       const autoCalendar = payload.data?.auto_calendar;
       if (autoCalendar?.created) {
@@ -159,7 +169,6 @@ export function PipelineBoard(props: {
         setFeedback("Stage updated.");
       }
     } catch (error) {
-      setProspects(previous);
       setFeedbackError(error instanceof Error ? error.message : "Failed to move stage");
     } finally {
       setSavingMove(false);
@@ -249,7 +258,7 @@ export function PipelineBoard(props: {
       <section className="mt-8 overflow-x-auto pb-6 reveal-up">
         <div className="grid min-w-[1120px] grid-cols-7 gap-4 stagger-children">
           {STAGE_COLUMNS.map((column) => {
-            const stageProspects = prospects.filter((prospect) => prospect.pipeline_stage === column.key);
+            const stageProspects = optimisticProspects.filter((prospect) => prospect.pipeline_stage === column.key);
 
             return (
               <article

@@ -1,7 +1,30 @@
+import { unstable_cache } from "next/cache";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logResearchEvent } from "@/lib/observability/telemetry";
 import { hasRequiredBillingProductConfig } from "@/lib/billing/plans";
 
 type SupabaseLike = Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>;
+
+const getCachedSubscriptionData = unstable_cache(
+  async (firmId: string) => {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("billing_subscriptions")
+      .select("status, current_period_end, trial_ends_at, grace_ends_at, access_state, updated_at")
+      .eq("firm_id", firmId)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[unstable_cache] Cached subscription query failed:", error);
+      return { error: true, data: null };
+    }
+    return { error: false, data };
+  },
+  ["firm-billing-subscription-v1"],
+  { tags: ["billing-subscription"], revalidate: 3600 }
+);
 
 type BillingAccessState = "active" | "grace" | "read_only";
 type BillingEnforcementMode = "bypassed" | "enforced";
@@ -170,15 +193,9 @@ async function resolveFirmAccessState(params: {
     };
   }
 
-  const { data, error } = await supabase
-    .from("billing_subscriptions")
-    .select("status, current_period_end, trial_ends_at, grace_ends_at, access_state, updated_at")
-    .eq("firm_id", firmId)
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const cacheRes = await getCachedSubscriptionData(firmId);
 
-  if (error) {
+  if (cacheRes.error) {
     return {
       ok: false,
       code: "billing_query_failed",
@@ -186,6 +203,8 @@ async function resolveFirmAccessState(params: {
       statusCode: 500,
     };
   }
+
+  const data = cacheRes.data;
 
   const status = typeof data?.status === "string" ? data.status : null;
   const currentPeriodEnd =

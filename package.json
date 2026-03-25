@@ -21,6 +21,7 @@
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
+    "@tanstack/react-virtual": "^3.13.23",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
     "ai": "^6.0.138",

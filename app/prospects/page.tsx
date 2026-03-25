@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { getFirmAccessState } from "@/lib/billing/entitlements";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { VirtualizedProspectsTable } from "@/components/prospects/virtualized-prospects-table";
 
 type SearchParams = {
   error?: string;
@@ -224,108 +225,7 @@ export default async function ProspectsPage({
           ) : null}
         </div>
 
-        <div className="mt-6 hidden table-shell md:block">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr>
-                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Company</th>
-                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Contact</th>
-                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Status</th>
-                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Fit score</th>
-                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Top reasons</th>
-                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#F7F6F2]">
-              {(prospects ?? []).map((prospect) => (
-                <tr key={prospect.id} className="hover:bg-[#FDFCFB]/50 transition-colors align-top">
-                  <td className="px-5 py-4">
-                    <p className="font-medium text-[#2C2A26]">{prospect.company_name}</p>
-                    <p className="mt-1 text-xs text-[#716E68]">{prospect.domain ?? "-"}</p>
-                  </td>
-                  <td className="px-5 py-4 text-xs text-[#716E68]">
-                    <p className="font-medium text-[#2C2A26]">{prospect.primary_contact_name ?? "-"}</p>
-                    <p className="mt-1">{prospect.primary_contact_title ?? "-"}</p>
-                    <p className="mt-1">{prospect.primary_contact_email ?? "-"}</p>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className="status-badge capitalize">{prospect.status}</span>
-                  </td>
-                  <td className="px-5 py-4">
-                    {prospect.fit_score != null ? (
-                      <span className="rounded px-2.5 py-1 text-xs font-medium border border-emerald-100 bg-emerald-50 text-emerald-800">
-                        {prospect.fit_score}
-                      </span>
-                    ) : (
-                      <span className="text-[#A19D94]">-</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 text-xs text-[#716E68]">
-                    {Array.isArray(prospect.score_explanation) && prospect.score_explanation.length ? (
-                      <div className="space-y-1">
-                        {prospect.score_explanation.slice(0, 2).map((item, index) => (
-                          <p key={`${prospect.id}-reason-${index}`}>
-                            {(item as { reason?: string }).reason ?? "Signal detected"}
-                          </p>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-[#A19D94] italic">No reasons yet</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      <form action="/api/outreach/drafts/generate" method="post">
-                        <input type="hidden" name="prospect_id" value={prospect.id} />
-                        <button
-                          className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
-                          type="submit"
-                        >
-                          Draft
-                        </button>
-                      </form>
-                      <form action="/api/prospects/enrich/tavily" method="post">
-                        <input type="hidden" name="prospect_id" value={prospect.id} />
-                        <button
-                          className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
-                          type="submit"
-                        >
-                          Tavily
-                        </button>
-                      </form>
-                      <form action="/api/prospects/enrich/firecrawl" method="post">
-                        <input type="hidden" name="prospect_id" value={prospect.id} />
-                        <button
-                          className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
-                          type="submit"
-                        >
-                          Firecrawl
-                        </button>
-                      </form>
-                      <form action="/api/research/runs" method="post">
-                        <input type="hidden" name="prospect_id" value={prospect.id} />
-                        <input type="hidden" name="limit" value="1" />
-                        <button
-                          className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
-                          type="submit"
-                        >
-                          Refresh
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {!prospects?.length ? (
-                <tr>
-                  <td className="px-5 py-8 text-sm text-[#716E68] text-center" colSpan={6}>
-                    No prospects found for this filter set.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
+        <VirtualizedProspectsTable prospects={prospects ?? []} />
       </section>
       </div>
     </AppShell>

@@ -1,3 +1,5 @@
+export const runtime = "edge";
+
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { getFirmAccessState } from "@/lib/billing/entitlements";
 import { createClient } from "@/lib/supabase/server";
