@@ -1,6 +1,5 @@
 export function extractSchedulerToken(request: Request) {
   const headerToken =
-    request.headers.get("x-inhumans-scheduler-token") ??
     request.headers.get("x-councilflow-scheduler-token");
   if (headerToken) return headerToken.trim();
 

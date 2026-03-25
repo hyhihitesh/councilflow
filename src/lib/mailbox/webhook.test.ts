@@ -10,25 +10,7 @@ import {
 } from "@/lib/mailbox/webhook";
 
 describe("mailbox webhook", () => {
-  it("verifies sha256 signature", () => {
-    const payload = JSON.stringify({ hello: "world" });
-    const secret = "test-secret";
-    const signature = createHmac("sha256", secret).update(payload, "utf8").digest("hex");
-
-    const headers = new Headers({
-      "x-inhumans-signature": `sha256=${signature}`,
-    });
-
-    expect(
-      verifyMailboxWebhookSignature({
-        payload,
-        headers,
-        secret,
-      }),
-    ).toBe(true);
-  });
-
-  it("verifies legacy x-councilflow-signature header", () => {
+  it("verifies sha256 signature via x-councilflow-signature header", () => {
     const payload = JSON.stringify({ hello: "world" });
     const secret = "test-secret";
     const signature = createHmac("sha256", secret).update(payload, "utf8").digest("hex");

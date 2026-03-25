@@ -3,9 +3,9 @@ import {
   recordAgentToolCall,
   startAgentStep,
 } from "@/lib/agent/audit";
-import { fetchFirecrawlCompanySignals } from "@/lib/research/firecrawl";
 import { logResearchEvent } from "@/lib/observability/telemetry";
-import { fetchTavilyCompanySignals } from "@/lib/research/tavily";
+import { fetchExaSearchSignals, fetchExaWebsiteSignals } from "@/lib/research/exa";
+import { fetchVibeEnrichment } from "@/lib/research/vibe";
 
 export type ResearchProspect = {
   id: string;
@@ -14,7 +14,39 @@ export type ResearchProspect = {
   primary_contact_title?: string | null;
 };
 
-type Provider = "tavily" | "firecrawl";
+export type Provider = "exa_search" | "exa_contents" | "vibe";
+
+type ProviderStrategy = {
+  fetch: (prospect: ResearchProspect) => Promise<any>;
+  formatResponse: (enrichment: any) => Record<string, unknown>;
+};
+
+const PROVIDER_STRATEGIES: Record<Provider, ProviderStrategy> = {
+  exa_search: {
+    fetch: (p) => fetchExaSearchSignals({
+      ...p,
+      primary_contact_title: p.primary_contact_title ?? null,
+    }),
+    formatResponse: (e) => ({
+      query: e.query,
+      results: e.results,
+    }),
+  },
+  exa_contents: {
+    fetch: (p) => fetchExaWebsiteSignals({ domain: p.domain }),
+    formatResponse: (e) => ({
+      source_url: e.source_url,
+      signal_count: e.signals.length,
+    }),
+  },
+  vibe: {
+    fetch: (p) => fetchVibeEnrichment({ company_name: p.company_name, domain: p.domain }),
+    formatResponse: (e) => ({
+      company: e.company,
+      intent: e.intent,
+    }),
+  },
+};
 
 export async function runProviderEnrichment(params: {
   supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>;
@@ -25,6 +57,12 @@ export async function runProviderEnrichment(params: {
   agentRunId?: string | null;
 }) {
   const { supabase, provider, firmId, prospect, userId, agentRunId = null } = params;
+  const strategy = PROVIDER_STRATEGIES[provider];
+
+  if (!strategy) {
+    throw new Error(`Unsupported research provider: ${provider}`);
+  }
+
   const runStart = Date.now();
   const agentStepId = await startAgentStep({
     supabase,
@@ -84,20 +122,10 @@ export async function runProviderEnrichment(params: {
   }
 
   try {
-    const enrichment =
-      provider === "tavily"
-        ? await fetchTavilyCompanySignals({
-            company_name: prospect.company_name,
-            domain: prospect.domain,
-            primary_contact_title: prospect.primary_contact_title ?? null,
-          })
-        : await fetchFirecrawlCompanySignals({
-            company_name: prospect.company_name,
-            domain: prospect.domain,
-          });
+    const enrichment = await strategy.fetch(prospect);
 
-    if (enrichment.signals.length > 0) {
-      const signalRows = enrichment.signals.map((signal) => ({
+    if (enrichment.signals && enrichment.signals.length > 0) {
+      const signalRows = enrichment.signals.map((signal: any) => ({
         firm_id: firmId,
         prospect_id: prospect.id,
         ...signal,
@@ -120,20 +148,7 @@ export async function runProviderEnrichment(params: {
       .from("prospect_enrichment_runs")
       .update({
         status: "completed",
-        response_payload:
-          provider === "tavily"
-            ? {
-                query: (enrichment as Awaited<ReturnType<typeof fetchTavilyCompanySignals>>).query,
-                answer: (enrichment as Awaited<ReturnType<typeof fetchTavilyCompanySignals>>).answer,
-                result_count:
-                  (enrichment as Awaited<ReturnType<typeof fetchTavilyCompanySignals>>).result_count,
-              }
-            : {
-                source_url:
-                  (enrichment as Awaited<ReturnType<typeof fetchFirecrawlCompanySignals>>).source_url,
-                signal_count:
-                  (enrichment as Awaited<ReturnType<typeof fetchFirecrawlCompanySignals>>).signal_count,
-              },
+        response_payload: strategy.formatResponse(enrichment),
         duration_ms: durationMs,
         completed_at: completedAt,
       })
@@ -162,7 +177,7 @@ export async function runProviderEnrichment(params: {
       firm_id: firmId,
       prospect_id: prospect.id,
       run_id: run.id,
-      signal_count: enrichment.signals.length,
+      signal_count: enrichment.signals?.length ?? 0,
       duration_ms: Date.now() - runStart,
     });
 
@@ -173,7 +188,7 @@ export async function runProviderEnrichment(params: {
       status: "completed",
       outputPayload: {
         prospect_id: prospect.id,
-        signal_count: enrichment.signals.length,
+        signal_count: enrichment.signals?.length ?? 0,
       },
     });
 
@@ -187,14 +202,14 @@ export async function runProviderEnrichment(params: {
       durationMs: Date.now() - runStart,
       responsePayload: {
         run_id: run.id,
-        signal_count: enrichment.signals.length,
+        signal_count: enrichment.signals?.length ?? 0,
       },
     });
 
     return {
       success: true as const,
       run_id: run.id,
-      signal_count: enrichment.signals.length,
+      signal_count: enrichment.signals?.length ?? 0,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : `${provider} enrichment failed`;

@@ -47,7 +47,6 @@ export function verifyMailboxWebhookSignature(params: {
 }) {
   const { payload, headers, secret } = params;
   const rawHeader =
-    headers.get("x-inhumans-signature") ??
     headers.get("x-councilflow-signature") ??
     headers.get("x-mailbox-signature") ??
     headers.get("x-signature");

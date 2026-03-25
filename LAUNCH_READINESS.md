@@ -32,9 +32,8 @@
 - Configure additional OAuth, billing, scheduler, and webhook keys from `.env.example` based on enabled features.
 
 ## Scheduler and webhook auth headers
-- Preferred scheduler header: `x-inhumans-scheduler-token`
-- Preferred webhook signature header: `x-inhumans-signature`
-- Legacy `x-councilflow-scheduler-token` and `x-councilflow-signature` are still accepted for backward compatibility.
+- Preferred scheduler header: `x-councilflow-scheduler-token`
+- Preferred webhook signature header: `x-councilflow-signature`
 
 ## Release checklist for `main`
 1. Merge latest `main` into `dev`.

@@ -7,24 +7,14 @@ import {
 } from "@/lib/scheduler/auth";
 
 describe("scheduler auth", () => {
-  it("extracts token from x-inhumans-scheduler-token header", () => {
+  it("extracts token from x-councilflow-scheduler-token header", () => {
     const request = new Request("https://example.com/api/test", {
       headers: {
-        "x-inhumans-scheduler-token": " header-token ",
+        "x-councilflow-scheduler-token": " header-token ",
       },
     });
 
     expect(extractSchedulerToken(request)).toBe("header-token");
-  });
-
-  it("extracts token from legacy x-councilflow-scheduler-token header", () => {
-    const request = new Request("https://example.com/api/test", {
-      headers: {
-        "x-councilflow-scheduler-token": " legacy-token ",
-      },
-    });
-
-    expect(extractSchedulerToken(request)).toBe("legacy-token");
   });
 
   it("extracts token from authorization bearer header", () => {

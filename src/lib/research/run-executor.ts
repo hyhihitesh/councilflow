@@ -5,7 +5,7 @@ import {
   nextRetryCount,
 } from "@/lib/research/orchestrator";
 import { logResearchEvent } from "@/lib/observability/telemetry";
-import { runProviderEnrichment } from "@/lib/research/provider-runner";
+import { Provider, runProviderEnrichment } from "@/lib/research/provider-runner";
 import { computeProspectFitScore } from "@/lib/research/scoring";
 
 type SupabaseLike = Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>;
@@ -281,24 +281,25 @@ export async function executeResearchRun(input: ExecuteResearchRunInput): Promis
   let providerFailureCount = 0;
 
   for (const prospect of prospects) {
-    const providerResults = await Promise.all([
-      runProviderEnrichment({
-        supabase,
-        provider: "tavily",
-        firmId,
-        prospect,
-        userId: requestedBy,
-        agentRunId,
-      }),
-      runProviderEnrichment({
-        supabase,
-        provider: "firecrawl",
-        firmId,
-        prospect,
-        userId: requestedBy,
-        agentRunId,
-      }),
-    ]);
+    const providersToRun: Provider[] = ["exa_search", "exa_contents", "vibe"];
+    
+    const providerResults = await Promise.all(
+      providersToRun.map((provider) =>
+        runProviderEnrichment({
+          supabase,
+          provider,
+          firmId,
+          prospect,
+          userId: requestedBy,
+          agentRunId,
+        }),
+      ),
+    );
+
+    // Rate limiting: Wait 1s between prospects to avoid flooding APIs
+    if (prospects.indexOf(prospect) < prospects.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
 
     const failedProvider = providerResults.find((result) => !result.success);
     if (failedProvider && !failedProvider.success) {

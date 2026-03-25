@@ -1,4 +1,4 @@
-# inhumans.io Scheduler Ops Runbook
+# CouncilFlow Scheduler Ops Runbook
 
 ## Purpose
 This runbook covers scheduled execution, monitoring, and incident response for:
@@ -42,36 +42,36 @@ This runbook covers scheduled execution, monitoring, and incident response for:
 ## Endpoints
 - `POST /api/research/schedule/weekly`
   - Triggers scheduled research runs.
-  - Auth: `x-inhumans-scheduler-token`, `Authorization: Bearer`, or `?token=`.
+  - Auth: `x-councilflow-scheduler-token`, `Authorization: Bearer`, or `?token=`.
 - `GET /api/research/schedule/weekly`
   - Returns scheduler health and recent scheduled run failures.
   - Same auth requirement as `POST`.
 - `POST /api/follow-ups/schedule/daily`
   - Generates due follow-up tasks by firm (idempotent per firm/day).
-  - Auth: `x-inhumans-scheduler-token`, `Authorization: Bearer`, or `?token=`.
+  - Auth: `x-councilflow-scheduler-token`, `Authorization: Bearer`, or `?token=`.
 - `GET /api/follow-ups/schedule/daily`
   - Returns follow-up scheduler health and recent failures.
   - Same auth requirement as `POST`.
 - `POST /api/content/drafts/schedule/weekly`
   - Generates LinkedIn + newsletter drafts by firm (idempotent per firm/week).
   - Runs Wednesday UTC unless `CONTENT_SCHEDULER_ALLOW_NON_WEDNESDAY=1`.
-  - Auth: `x-inhumans-scheduler-token`, `Authorization: Bearer`, or `?token=`.
+  - Auth: `x-councilflow-scheduler-token`, `Authorization: Bearer`, or `?token=`.
 - `GET /api/content/drafts/schedule/weekly`
   - Returns content scheduler health and recent failures.
   - Same auth requirement as `POST`.
 - `POST /api/reporting/schedule/weekly`
   - Generates weekly digest payload and delivery records by firm.
   - Uses previous completed UTC week window.
-  - Auth: `x-inhumans-scheduler-token`, `Authorization: Bearer`, or `?token=`.
+  - Auth: `x-councilflow-scheduler-token`, `Authorization: Bearer`, or `?token=`.
 - `GET /api/reporting/schedule/weekly`
   - Returns reporting scheduler health and recent failures.
   - Same auth requirement as `POST`.
 - `POST /api/webhook/mailbox`
   - Ingests mailbox reply/open events with idempotent event IDs.
-  - Signature header supported: `x-inhumans-signature` (`sha256=...`).
+  - Signature header supported: `x-councilflow-signature` (`sha256=...`).
 - `GET /api/webhook/mailbox`
   - Returns recent mailbox events and dead-letter failures.
-  - Auth: `x-inhumans-scheduler-token`, `Authorization: Bearer`, or `?token=` using `MAILBOX_WEBHOOK_HEALTH_TOKEN` (or `CRON_SECRET` fallback).
+  - Auth: `x-councilflow-scheduler-token`, `Authorization: Bearer`, or `?token=` using `MAILBOX_WEBHOOK_HEALTH_TOKEN` (or `CRON_SECRET` fallback).
 - `POST /api/research/runs`
   - Manual and retry execution endpoint.
 - `POST /api/pipeline/stage-move`

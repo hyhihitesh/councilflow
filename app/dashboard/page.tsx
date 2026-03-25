@@ -401,14 +401,6 @@ export default async function DashboardPage({
           </p>
         ) : null}
 
-        <section className="mt-8 glass-card p-6 reveal-up">
-          <h2 className="text-xl font-medium">Sprint 2 Progress</h2>
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-[#94A3B8]">
-            <li>Supabase SSR auth wired</li>
-            <li>Tenant foundation with RLS policies added</li>
-            <li>Onboarding flow creates first firm workspace</li>
-          </ul>
-        </section>
 
         <section className="mt-6 glass-card p-6 reveal-up">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -947,9 +939,9 @@ export default async function DashboardPage({
         </section>
 
         <section className="mt-6 glass-card p-6 reveal-up">
-          <h2 className="text-xl font-medium">Prospect Intelligence (Tavily + Firecrawl)</h2>
+          <h2 className="text-xl font-medium">CouncilFlow Intelligence (Exa + Vibe)</h2>
           <p className="mt-2 text-sm text-[#94A3B8]">
-            Run news enrichment with Tavily and website enrichment with Firecrawl per prospect.
+            Proactive market discovery with Exa neural search and high-fidelity B2B enrichment with Vibe.
           </p>
 
           <form method="get" className="mt-4 grid gap-3 rounded-xl border border-white/10 bg-[#0D1117] p-4 md:grid-cols-4">
@@ -1030,69 +1022,111 @@ export default async function DashboardPage({
                     </td>
                     <td className="px-4 py-3">
                       {prospect.fit_score != null ? (
-                        <span className="rounded-full border border-emerald-300/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-200">
-                          {prospect.fit_score}
-                        </span>
+                        <div className="flex flex-col items-start gap-1">
+                          <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                            prospect.fit_score >= 80 ? "border-emerald-300/30 bg-emerald-500/15 text-emerald-200" :
+                            prospect.fit_score >= 50 ? "border-blue-300/30 bg-blue-500/15 text-blue-200" :
+                            prospect.fit_score <= 30 ? "border-red-400/30 bg-red-500/15 text-red-200" :
+                            "border-white/20 bg-white/5 text-white/70"
+                          }`}>
+                            {prospect.fit_score}
+                          </span>
+                          {prospect.fit_score <= 30 && Array.isArray(prospect.score_explanation) && prospect.score_explanation.some((e: any) => ["layoff_signal", "bankruptcy_signal", "legal_risk_signal"].includes(e.signal_type)) && (
+                            <span className="text-[10px] uppercase tracking-tighter text-red-400 font-bold">🚩 Risk Detected</span>
+                          )}
+                        </div>
                       ) : (
                         "-"
                       )}
                     </td>
                     <td className="px-4 py-3 text-xs text-[#CBD5E1]">
                       {Array.isArray(prospect.score_explanation) && prospect.score_explanation.length ? (
-                        <div className="space-y-1">
+                        <div className="space-y-1.5">
                           {prospect.score_explanation
-                            .slice(0, 2)
-                            .map((item, index) => (
-                              <p key={`${prospect.id}-reason-${index}`}>
-                                {(item as { reason?: string }).reason ?? "Signal detected"}
-                              </p>
-                            ))}
+                            .slice(0, 3)
+                            .map((item: any, index: number) => {
+                              const isPositive = (item.contribution ?? 0) > 0;
+                              const isRedFlag = ["layoff_signal", "bankruptcy_signal", "legal_risk_signal"].includes(item.signal_type);
+                              
+                              return (
+                                <div key={`${prospect.id}-reason-${index}`} className="flex items-start gap-2">
+                                  <span className={`mt-0.5 whitespace-nowrap font-mono text-[10px] font-bold ${
+                                    isRedFlag ? "text-red-400" :
+                                    isPositive ? "text-emerald-400" : "text-amber-400"
+                                  }`}>
+                                    {isPositive ? "+" : ""}{Math.round(item.contribution)}
+                                  </span>
+                                  <p className={isRedFlag ? "text-red-200/80 italic" : ""}>
+                                    {item.reason ?? "Signal detected"}
+                                  </p>
+                                </div>
+                              );
+                            })}
                         </div>
                       ) : (
                         <span className="text-[#94A3B8]">No reasons yet</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
                         <form action="/api/research/runs" method="post">
                           <input type="hidden" name="firm_id" value={primary.firm_id} />
                           <input type="hidden" name="prospect_id" value={prospect.id} />
                           <input type="hidden" name="limit" value="1" />
                           <button
-                            className="rounded-md border border-fuchsia-300/40 bg-fuchsia-500/10 px-3 py-1.5 text-xs text-fuchsia-200"
+                            className="rounded-md border border-[#8B5CF6]/40 bg-[#8B5CF6]/10 px-3 py-1.5 text-xs font-semibold text-[#A78BFA] transition-colors hover:bg-[#8B5CF6]/20"
                             type="submit"
                           >
-                            Refresh all
+                            Run Intelligence
                           </button>
                         </form>
-                        <form action="/api/prospects/enrich/tavily" method="post">
-                          <input type="hidden" name="firm_id" value={primary.firm_id} />
-                          <input type="hidden" name="prospect_id" value={prospect.id} />
-                          <button
-                            className="rounded-md border border-emerald-300/40 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-200"
-                            type="submit"
-                          >
-                            Run Tavily
-                          </button>
-                        </form>
-                        <form action="/api/prospects/enrich/firecrawl" method="post">
-                          <input type="hidden" name="firm_id" value={primary.firm_id} />
-                          <input type="hidden" name="prospect_id" value={prospect.id} />
-                          <button
-                            className="rounded-md border border-cyan-300/40 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200"
-                            type="submit"
-                          >
-                            Run Firecrawl
-                          </button>
-                        </form>
+                        <div className="flex opacity-60 transition-opacity hover:opacity-100">
+                          <form action="/api/prospects/enrich/exa" method="post">
+                            <input type="hidden" name="prospect_id" value={prospect.id} />
+                            <input type="hidden" name="mode" value="search" />
+                            <button
+                              className="rounded-l-md border border-r-0 border-white/10 bg-white/5 px-2 py-1.5 text-[10px] text-white/70 hover:bg-white/10"
+                              type="submit" title="Exa Search"
+                            >
+                              Search
+                            </button>
+                          </form>
+                          <form action="/api/prospects/enrich/exa" method="post">
+                            <input type="hidden" name="prospect_id" value={prospect.id} />
+                            <input type="hidden" name="mode" value="contents" />
+                            <button
+                              className="border-y border-white/10 bg-white/5 px-2 py-1.5 text-[10px] text-white/70 hover:bg-white/10"
+                              type="submit" title="Exa Scrape"
+                            >
+                              Scrape
+                            </button>
+                          </form>
+                          <form action="/api/prospects/enrich/vibe" method="post">
+                            <input type="hidden" name="prospect_id" value={prospect.id} />
+                            <button
+                              className="rounded-r-md border border-l-0 border-white/10 bg-white/5 px-2 py-1.5 text-[10px] text-white/70 hover:bg-white/10"
+                              type="submit" title="Vibe Enrich"
+                            >
+                              Vibe
+                            </button>
+                          </form>
+                        </div>
                       </div>
                     </td>
                   </tr>
                 ))}
                 {!prospects?.length ? (
                   <tr className="border-t border-white/10">
-                    <td className="px-4 py-6 text-sm text-[#94A3B8]" colSpan={6}>
-                      No prospects yet. Add prospects in the manual ingestion section first.
+                    <td className="px-4 py-12 text-center" colSpan={6}>
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        <div className="rounded-full bg-white/5 p-3">
+                          <svg className="h-6 w-6 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                        </div>
+                        <p className="text-sm font-medium text-[#CBD5E1]">No prospects found</p>
+                        <p className="text-xs text-[#94A3B8]">Use the manual ingestion form above to add your first target company.</p>
+                      </div>
                     </td>
                   </tr>
                 ) : null}
@@ -1124,7 +1158,11 @@ export default async function DashboardPage({
                       ? "/api/prospects/enrich/tavily"
                       : run.provider === "firecrawl"
                         ? "/api/prospects/enrich/firecrawl"
-                        : "";
+                        : run.provider === "exa_search" || run.provider === "exa_contents"
+                          ? "/api/prospects/enrich/exa"
+                          : run.provider === "vibe"
+                            ? "/api/prospects/enrich/vibe"
+                            : "";
 
                   return (
                     <tr key={run.id} className="border-t border-white/10">
@@ -1138,13 +1176,19 @@ export default async function DashboardPage({
                         </span>
                       </td>
                       <td className="px-4 py-3 text-xs text-[#CBD5E1]">
-                        {run.error_message ? run.error_message.slice(0, 140) : "-"}
+                        {run.error_message ? (
+                          run.error_message.includes("429") ? "API Rate limit reached. The system will retry shortly." :
+                          run.error_message.includes("Timeout") ? "Request timed out during deep extraction." :
+                          run.error_message.slice(0, 140)
+                        ) : "-"}
                       </td>
                       <td className="px-4 py-3">
                         {run.status === "failed" && run.prospect_id && actionRoute ? (
                           <form action={actionRoute} method="post">
                             <input type="hidden" name="firm_id" value={primary.firm_id} />
                             <input type="hidden" name="prospect_id" value={run.prospect_id} />
+                            {run.provider === "exa_search" && <input type="hidden" name="mode" value="search" />}
+                            {run.provider === "exa_contents" && <input type="hidden" name="mode" value="contents" />}
                             <button
                               type="submit"
                               className="rounded-md border border-amber-300/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200"
