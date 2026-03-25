@@ -246,15 +246,15 @@ export function PipelineBoard(props: {
       {feedbackError ? <p className="mt-4 alert-error">{feedbackError}</p> : null}
       {feedback ? <p className="mt-4 alert-success">{feedback}</p> : null}
 
-      <section className="mt-6 overflow-x-auto pb-2 reveal-up">
-        <div className="grid min-w-[1120px] grid-cols-7 gap-3 stagger-children">
+      <section className="mt-8 overflow-x-auto pb-6 reveal-up">
+        <div className="grid min-w-[1120px] grid-cols-7 gap-4 stagger-children">
           {STAGE_COLUMNS.map((column) => {
             const stageProspects = prospects.filter((prospect) => prospect.pipeline_stage === column.key);
 
             return (
               <article
                 key={column.key}
-                className="rounded-xl border border-white/10 bg-white/5 p-3"
+                className="rounded bg-[#FDFCFB] border border-[#EBE8E0] p-3 shadow-sm flex flex-col min-h-[500px]"
                 onDragOver={(event) => {
                   event.preventDefault();
                 }}
@@ -269,16 +269,16 @@ export function PipelineBoard(props: {
                   setDraggingProspectId(null);
                 }}
               >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-[#CBD5E1]">
+                <div className="flex items-center justify-between border-b border-[#F7F6F2] pb-3 mb-3">
+                  <h2 className="text-[10px] font-medium uppercase tracking-widest text-[#716E68]">
                     {column.label}
                   </h2>
-                  <span className="rounded-full bg-[#111827] px-2 py-0.5 text-xs text-[#94A3B8]">
+                  <span className="rounded bg-[#F7F6F2] px-2 py-0.5 text-[10px] font-medium text-[#716E68]">
                     {stageProspects.length}
                   </span>
                 </div>
 
-                <div className="mt-3 space-y-2">
+                <div className="space-y-3 flex-1">
                   {stageProspects.slice(0, 20).map((prospect) => {
                     const linkedMeeting = calendarByProspect[prospect.id];
 
@@ -289,25 +289,25 @@ export function PipelineBoard(props: {
                         onDragStart={() => setDraggingProspectId(prospect.id)}
                         onDragEnd={() => setDraggingProspectId(null)}
                         onClick={() => setSelectedProspectId(prospect.id)}
-                        className="w-full rounded-lg border border-white/10 bg-[#0D1117] px-3 py-2 text-left"
+                        className="w-full rounded bg-white border border-[#EBE8E0] px-3 py-3 text-left shadow-sm hover:border-[#D5D1C6] hover:shadow transition-all group"
                         type="button"
                       >
-                        <p className="text-sm font-medium">{prospect.company_name}</p>
+                        <p className="text-[13px] font-medium text-[#2C2A26] line-clamp-1">{prospect.company_name}</p>
                         {prospect.is_hot_lead ? (
-                          <p className="mt-1 inline-flex rounded-full border border-rose-300/40 bg-rose-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.08em] text-rose-200">
+                          <p className="mt-2 inline-flex rounded border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-widest text-rose-700">
                             Hot lead{prospect.hot_lead_reason ? ` | ${prospect.hot_lead_reason}` : ""}
                           </p>
                         ) : null}
                         {linkedMeeting ? (
-                          <p className="mt-1 inline-flex rounded-full border border-indigo-300/40 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.08em] text-indigo-200">
+                          <p className="mt-2 inline-flex rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-widest text-indigo-700">
                             Meeting linked
                           </p>
                         ) : null}
-                        <p className="mt-1 text-xs text-[#94A3B8]">{prospect.domain ?? "No domain"}</p>
-                        <p className="mt-1 text-xs text-[#94A3B8]">
+                        <p className="mt-2 text-[11px] text-[#A19D94] line-clamp-1">{prospect.domain ?? "No domain"}</p>
+                        <p className="mt-1 text-[11px] text-[#A19D94]">
                           Fit: {prospect.fit_score ?? "-"}
                           {prospect.next_follow_up_at
-                            ? ` | Next follow-up ${new Date(prospect.next_follow_up_at).toLocaleDateString()}`
+                            ? ` | Follow-up ${new Date(prospect.next_follow_up_at).toLocaleDateString()}`
                             : ""}
                         </p>
                       </button>
@@ -315,9 +315,11 @@ export function PipelineBoard(props: {
                   })}
 
                   {!stageProspects.length ? (
-                    <p className="rounded-lg border border-dashed border-white/15 bg-[#0D1117] px-3 py-2 text-xs text-[#94A3B8]">
-                      No prospects in this stage.
-                    </p>
+                    <div className="h-full flex items-center justify-center p-4">
+                      <p className="text-[11px] text-[#A19D94] text-center italic">
+                        Empty stage
+                      </p>
+                    </div>
                   ) : null}
                 </div>
               </article>
@@ -326,39 +328,41 @@ export function PipelineBoard(props: {
         </div>
       </section>
 
-      <section className="mt-8 glass-card p-5 reveal-up">
-        <h2 className="text-xl font-medium">Follow-Up Queue</h2>
-        <p className="mt-2 text-sm text-[#94A3B8]">Tasks generated from timing rules after outreach activity.</p>
+      <section className="mt-12 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+        <div className="mb-6 pb-6 border-b border-[#F7F6F2]">
+          <h2 className="text-xl font-light tracking-tight">Follow-Up Queue</h2>
+          <p className="mt-2 text-sm text-[#716E68]">Tasks generated from timing rules after outreach activity.</p>
+        </div>
 
         <div className="mt-4 table-shell">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#0D1117] text-[#94A3B8]">
+            <thead>
               <tr>
-                <th className="px-4 py-3 font-medium">Prospect</th>
-                <th className="px-4 py-3 font-medium">Due</th>
-                <th className="px-4 py-3 font-medium">Subject</th>
-                <th className="px-4 py-3 font-medium">Stage</th>
-                <th className="px-4 py-3 font-medium">Actions</th>
+                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Prospect</th>
+                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Due</th>
+                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Subject</th>
+                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Stage</th>
+                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#F7F6F2]">
               {props.tasks.map((task) => (
-                <tr key={task.id} className="border-t border-white/10 align-top">
-                  <td className="px-4 py-3">{byProspect.get(task.prospect_id) ?? task.prospect_id}</td>
-                  <td className="px-4 py-3">{new Date(task.due_at).toLocaleString()}</td>
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{task.subject}</p>
-                    <p className="mt-1 line-clamp-2 text-xs text-[#94A3B8]">{task.body}</p>
+                <tr key={task.id} className="hover:bg-[#FDFCFB]/50 transition-colors align-top">
+                  <td className="px-5 py-4 text-[#2C2A26] font-medium">{byProspect.get(task.prospect_id) ?? task.prospect_id}</td>
+                  <td className="px-5 py-4 text-[#716E68] text-xs">{new Date(task.due_at).toLocaleString()}</td>
+                  <td className="px-5 py-4">
+                    <p className="font-medium text-[#2C2A26]">{task.subject}</p>
+                    <p className="mt-2 line-clamp-2 text-xs text-[#716E68] leading-relaxed">{task.body}</p>
                   </td>
-                  <td className="px-4 py-3 capitalize">{task.stage}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4 capitalize text-[#716E68] text-xs">{task.stage}</td>
+                  <td className="px-5 py-4">
                     <div className="flex gap-2">
                       <form action="/api/follow-ups/decision" method="post">
                         <input type="hidden" name="task_id" value={task.id} />
                         <input type="hidden" name="action" value="complete" />
                         <button
                           type="submit"
-                          className="rounded-md border border-emerald-300/40 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-200"
+                          className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 transition-all uppercase tracking-wider"
                         >
                           Mark complete
                         </button>
@@ -368,7 +372,7 @@ export function PipelineBoard(props: {
                         <input type="hidden" name="action" value="skip" />
                         <button
                           type="submit"
-                          className="rounded-md border border-amber-300/40 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-200"
+                          className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-amber-700 hover:border-amber-200 hover:bg-amber-50 transition-all uppercase tracking-wider"
                         >
                           Skip
                         </button>
@@ -378,8 +382,8 @@ export function PipelineBoard(props: {
                 </tr>
               ))}
               {!props.tasks.length ? (
-                <tr className="border-t border-white/10">
-                  <td className="px-4 py-6 text-sm text-[#94A3B8]" colSpan={5}>
+                <tr>
+                  <td className="px-5 py-8 text-sm text-[#716E68] text-center" colSpan={5}>
                     No pending follow-ups. Generate due follow-ups to populate the queue.
                   </td>
                 </tr>
@@ -390,31 +394,31 @@ export function PipelineBoard(props: {
       </section>
 
       {selectedProspect ? (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/45">
-          <aside className="h-full w-full max-w-xl overflow-y-auto border-l border-white/15 bg-[#0B1220] p-5">
-            <div className="flex items-start justify-between gap-3">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/20 backdrop-blur-sm">
+          <aside className="h-full w-full max-w-xl overflow-y-auto border-l border-[#EBE8E0] bg-[#FDFCFB] p-8 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-xl font-semibold">{selectedProspect.company_name}</h3>
-                <p className="mt-1 text-sm text-[#94A3B8]">{selectedProspect.domain ?? "No domain"}</p>
+                <h3 className="text-2xl font-light tracking-tight text-[#2C2A26]">{selectedProspect.company_name}</h3>
+                <p className="mt-1 text-sm text-[#716E68]">{selectedProspect.domain ?? "No domain"}</p>
               </div>
               <button
                 type="button"
-                className="rounded-md border border-white/20 bg-[#111827] px-3 py-1.5 text-xs"
+                className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
                 onClick={() => setSelectedProspectId(null)}
               >
                 Close
               </button>
             </div>
 
-            <div className="mt-5 rounded-lg border border-white/10 bg-[#0D1117] p-4">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Stage</p>
-              <p className="mt-2 text-sm font-medium capitalize">{selectedProspect.pipeline_stage}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-8 rounded-sm border border-[#EBE8E0] bg-white p-5 shadow-sm">
+              <p className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94]">Stage</p>
+              <p className="mt-2 text-sm font-medium capitalize text-[#2C2A26]">{selectedProspect.pipeline_stage}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
                 {STAGE_COLUMNS.map((stage) => (
                   <button
                     key={`drawer-stage-${stage.key}`}
                     type="button"
-                    className="rounded-md border border-cyan-300/30 bg-cyan-500/10 px-2.5 py-1 text-xs text-cyan-200"
+                    className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 transition-all uppercase tracking-wider"
                     onClick={() => {
                       const meetingPayload =
                         stage.key === "meeting" && meetingTitle && meetingStart && meetingEnd
@@ -443,16 +447,16 @@ export function PipelineBoard(props: {
               </div>
             </div>
 
-            <div className="mt-5 rounded-lg border border-white/10 bg-[#0D1117] p-4">
-              <h4 className="text-sm font-semibold uppercase tracking-[0.12em] text-[#CBD5E1]">Meeting sync</h4>
+            <div className="mt-6 rounded-sm border border-[#EBE8E0] bg-white p-5 shadow-sm">
+              <h4 className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94] mb-4">Meeting sync</h4>
               {selectedCalendar ? (
-                <div className="mt-3 space-y-2 text-sm text-[#CBD5E1]">
-                  <p>Status: <span className="capitalize">{selectedCalendar.status}</span></p>
-                  <p>Starts: {formatDateTime(selectedCalendar.starts_at)}</p>
-                  <p>Ends: {formatDateTime(selectedCalendar.ends_at)}</p>
+                <div className="space-y-3 text-sm text-[#716E68]">
+                  <p>Status: <span className="capitalize font-medium text-[#2C2A26]">{selectedCalendar.status}</span></p>
+                  <p>Starts: <span className="text-[#2C2A26]">{formatDateTime(selectedCalendar.starts_at)}</span></p>
+                  <p>Ends: <span className="text-[#2C2A26]">{formatDateTime(selectedCalendar.ends_at)}</span></p>
                   {selectedCalendar.meeting_url ? (
                     <a
-                      className="inline-block rounded-md border border-indigo-300/40 bg-indigo-500/10 px-2.5 py-1 text-xs text-indigo-200"
+                      className="inline-flex mt-2 px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 transition-all uppercase tracking-wider"
                       href={selectedCalendar.meeting_url}
                       target="_blank"
                       rel="noreferrer"
@@ -462,40 +466,40 @@ export function PipelineBoard(props: {
                   ) : null}
                 </div>
               ) : (
-                <div className="mt-3 grid gap-2 text-sm">
+                <div className="grid gap-3 text-sm">
                   <input
-                    className="input-base"
+                    className="w-full rounded border border-[#EBE8E0] bg-white px-3 py-2 text-sm text-[#2C2A26] placeholder-[#A19D94] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors"
                     placeholder="Meeting title"
                     value={meetingTitle}
                     onChange={(event) => setMeetingTitle(event.target.value)}
                   />
                   <input
-                    className="input-base"
+                    className="w-full rounded border border-[#EBE8E0] bg-white px-3 py-2 text-sm text-[#2C2A26] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors"
                     type="datetime-local"
                     value={meetingStart}
                     onChange={(event) => setMeetingStart(event.target.value)}
                   />
                   <input
-                    className="input-base"
+                    className="w-full rounded border border-[#EBE8E0] bg-white px-3 py-2 text-sm text-[#2C2A26] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors"
                     type="datetime-local"
                     value={meetingEnd}
                     onChange={(event) => setMeetingEnd(event.target.value)}
                   />
                   <textarea
-                    className="input-base min-h-20"
+                    className="w-full rounded border border-[#EBE8E0] bg-white px-3 py-2 text-sm text-[#2C2A26] placeholder-[#A19D94] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors min-h-20 resize-y"
                     placeholder="Meeting description"
                     value={meetingDescription}
                     onChange={(event) => setMeetingDescription(event.target.value)}
                   />
                   <input
-                    className="input-base"
+                    className="w-full rounded border border-[#EBE8E0] bg-white px-3 py-2 text-sm text-[#2C2A26] placeholder-[#A19D94] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors"
                     placeholder="Attendees (comma-separated emails)"
                     value={meetingAttendees}
                     onChange={(event) => setMeetingAttendees(event.target.value)}
                   />
                   <button
                     type="button"
-                    className="rounded-md border border-indigo-300/40 bg-indigo-500/10 px-3 py-2 text-xs text-indigo-200"
+                    className="px-4 py-2 mt-2 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
                     onClick={() => void createMeetingEvent(selectedProspect.id)}
                     disabled={creatingMeeting}
                   >
@@ -505,21 +509,23 @@ export function PipelineBoard(props: {
               )}
             </div>
 
-            <div className="mt-5 rounded-lg border border-white/10 bg-[#0D1117] p-4">
-              <h4 className="text-sm font-semibold uppercase tracking-[0.12em] text-[#CBD5E1]">Thread summary</h4>
-              <div className="mt-3 space-y-2">
+            <div className="mt-6 rounded-sm border border-[#EBE8E0] bg-white p-5 shadow-sm">
+              <h4 className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94] mb-4">Thread summary</h4>
+              <div className="space-y-3">
                 {selectedThread.map((item) => (
-                  <article key={item.id} className="rounded-md border border-white/10 bg-[#101827] p-3">
-                    <p className="text-xs uppercase tracking-[0.08em] text-[#94A3B8]">
+                  <article key={item.id} className="rounded border border-[#EBE8E0] bg-[#FDFCFB] p-4 hover:border-[#D5D1C6] transition-colors">
+                    <p className="text-[9px] uppercase tracking-widest text-[#A19D94] font-medium">
                       {item.source} | {item.eventType}
                     </p>
-                    <p className="mt-1 text-sm font-medium">{item.title}</p>
-                    <p className="mt-1 text-xs text-[#CBD5E1]">{item.description}</p>
-                    <p className="mt-1 text-[11px] text-[#94A3B8]">{formatDateTime(item.happenedAt)}</p>
+                    <p className="mt-2 text-sm font-medium text-[#2C2A26]">{item.title}</p>
+                    <p className="mt-1 text-xs text-[#716E68] leading-relaxed">{item.description}</p>
+                    <p className="mt-3 text-[10px] text-[#A19D94] font-medium">{formatDateTime(item.happenedAt)}</p>
                   </article>
                 ))}
                 {!selectedThread.length ? (
-                  <p className="text-xs text-[#94A3B8]">No thread events yet.</p>
+                  <div className="py-6 text-center">
+                    <p className="text-xs text-[#A19D94] italic">No thread events yet.</p>
+                  </div>
                 ) : null}
               </div>
             </div>

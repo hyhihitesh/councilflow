@@ -118,80 +118,80 @@ export default async function ContentStudioPage({
         <>
           <Link
             href="/pipeline"
-            className="rounded-md border border-amber-300/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
           >
-            Open pipeline
+            Pipeline
           </Link>
           <Link
             href="/analytics"
-            className="rounded-md border border-indigo-300/30 bg-indigo-500/10 px-3 py-2 text-xs text-indigo-200"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider ml-2"
           >
-            Open analytics
+            Analytics
           </Link>
           <Link
             href="/dashboard"
-            className="rounded-md border border-white/20 bg-[#111827] px-3 py-2 text-xs"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider ml-2"
           >
-            Back to dashboard
+            Dashboard
           </Link>
         </>
       }
     >
-
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {params.error ? (
-          <p className="mt-6 alert-error">
+          <p className="mt-4 alert-error">
             {params.error}
           </p>
         ) : null}
         {params.message ? (
-          <p className="mt-6 alert-success">
+          <p className="mt-4 alert-success">
             {params.message}
           </p>
         ) : null}
 
-        <section className="mt-6 grid gap-4 md:grid-cols-2 reveal-up stagger-children">
-          <article className="glass-card p-5">
-            <h2 className="text-lg font-semibold">LinkedIn Weekly Draft</h2>
-            <p className="mt-2 text-sm text-[#94A3B8]">
+        <section className="mt-6 grid gap-6 md:grid-cols-2 reveal-up stagger-children">
+          <article className="bg-[#FDFCFB] border border-[#EBE8E0] p-8 shadow-sm rounded-sm">
+            <h2 className="text-xl font-light tracking-tight text-[#2C2A26]">LinkedIn Weekly Draft</h2>
+            <p className="mt-2 text-sm text-[#716E68]">
               Generate a concise post with hook, POV, and clear discussion CTA.
             </p>
-            <form action="/api/content/drafts/generate" method="post" className="mt-4 grid gap-3">
+            <form action="/api/content/drafts/generate" method="post" className="mt-6 grid gap-3">
               <input type="hidden" name="channel" value="linkedin" />
               <label className="grid gap-1">
                 <span className="sr-only">LinkedIn draft topic</span>
                 <input
                   name="topic"
                   placeholder="Topic (ex: client retention signals)"
-                  className="rounded-md border border-white/15 bg-[#0D1117] px-3 py-2 text-sm outline-none ring-[#8B5CF6] focus:ring-2"
+                  className="w-full rounded border border-[#EBE8E0] bg-white px-4 py-3 text-sm text-[#2C2A26] placeholder-[#A19D94] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors"
                 />
               </label>
               <button
                 type="submit"
-                className="btn-base btn-primary"
+                className="mt-2 px-6 py-3 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
               >
                 Generate LinkedIn draft
               </button>
             </form>
           </article>
 
-          <article className="glass-card p-5">
-            <h2 className="text-lg font-semibold">Newsletter Monthly Draft</h2>
-            <p className="mt-2 text-sm text-[#94A3B8]">
+          <article className="bg-[#FDFCFB] border border-[#EBE8E0] p-8 shadow-sm rounded-sm">
+            <h2 className="text-xl font-light tracking-tight text-[#2C2A26]">Newsletter Monthly Draft</h2>
+            <p className="mt-2 text-sm text-[#716E68]">
               Generate a structured brief with sections and practical recommendations.
             </p>
-            <form action="/api/content/drafts/generate" method="post" className="mt-4 grid gap-3">
+            <form action="/api/content/drafts/generate" method="post" className="mt-6 grid gap-3">
               <input type="hidden" name="channel" value="newsletter" />
               <label className="grid gap-1">
                 <span className="sr-only">Newsletter draft topic</span>
                 <input
                   name="topic"
                   placeholder="Topic (ex: outbound quality metrics)"
-                  className="rounded-md border border-white/15 bg-[#0D1117] px-3 py-2 text-sm outline-none ring-[#8B5CF6] focus:ring-2"
+                  className="w-full rounded border border-[#EBE8E0] bg-white px-4 py-3 text-sm text-[#2C2A26] placeholder-[#A19D94] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors"
                 />
               </label>
               <button
                 type="submit"
-                className="btn-base btn-primary"
+                className="mt-2 px-6 py-3 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
               >
                 Generate newsletter draft
               </button>
@@ -199,17 +199,17 @@ export default async function ContentStudioPage({
           </article>
         </section>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-2 reveal-up stagger-children">
-          <article className="glass-card p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">LinkedIn Drafts</h2>
-              <span className="rounded-full bg-[#111827] px-2 py-0.5 text-xs text-[#94A3B8]">
+        <section className="mt-12 grid gap-12 md:grid-cols-2 reveal-up stagger-children">
+          <article className="bg-transparent">
+            <div className="flex items-center justify-between border-b border-[#F7F6F2] pb-4 mb-6">
+              <h2 className="text-lg font-light tracking-tight text-[#2C2A26]">LinkedIn Drafts</h2>
+              <span className="px-2 py-0.5 rounded bg-white border border-[#EBE8E0] text-[10px] uppercase tracking-widest text-[#716E68] font-medium shadow-sm">
                 {linkedinDrafts.length}
               </span>
             </div>
-            <div className="mt-4 space-y-4">
+            <div className="mt-4 space-y-8">
               {linkedinDrafts.map((draft) => (
-                <div key={draft.id} className="rounded-xl border border-white/10 bg-[#0D1117] p-4">
+                <div key={draft.id} className="rounded border border-[#EBE8E0] bg-[#FDFCFB] p-6 shadow-sm flex flex-col hover:border-[#D5D1C6] transition-colors group">
                   {(() => {
                     const providerStatus = resolveProviderField(draft, "provider_status");
                     const providerPostId = resolveProviderField(draft, "provider_post_id");
@@ -224,79 +224,79 @@ export default async function ContentStudioPage({
 
                     return (
                       <>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs uppercase tracking-[0.12em] text-[#94A3B8]">
+                  <div className="flex items-center justify-between gap-2 border-b border-[#EBE8E0] pb-3 mb-4">
+                    <p className="text-[10px] uppercase tracking-widest text-[#716E68] font-medium">
                       v{draft.version} | {draft.status}
                     </p>
-                    <p className="text-xs text-[#94A3B8]">
+                    <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">
                       {previewDate(draft.created_at)}
                     </p>
                   </div>
 
-                  <div className="mt-2 rounded-lg border border-white/10 bg-[#060911] px-3 py-2 text-[11px] text-[#CBD5E1]">
+                  <div className="mb-6 rounded bg-white border border-[#EBE8E0] px-4 py-3 text-[11px] text-[#716E68] shadow-sm">
                     <p>
-                      Publish status: <span className="font-semibold capitalize">{providerStatus ?? "not published"}</span>
+                      Publish status: <span className="font-medium text-[#2C2A26] capitalize">{providerStatus ?? "not published"}</span>
                     </p>
                     {providerPostId ? (
-                      <p className="mt-1 break-all">
-                        Provider post id: <span className="font-mono text-[10px]">{providerPostId}</span>
+                      <p className="mt-2 break-all text-[#A19D94]">
+                        Post ID: <span className="font-mono text-[10px]">{providerPostId}</span>
                       </p>
                     ) : null}
                     {providerPublishedAt ? (
                       <p className="mt-1">Provider published at: {new Date(providerPublishedAt).toLocaleString()}</p>
                     ) : null}
                     {providerErrorCode || providerErrorMessage ? (
-                      <p className="mt-1 text-amber-300">
+                      <p className="mt-2 text-amber-700 bg-amber-50 border border-amber-200 p-2 rounded">
                         Last provider error: {[providerErrorCode, providerErrorMessage].filter(Boolean).join(" | ")}
                       </p>
                     ) : null}
                   </div>
 
-                  <div className="mt-3 grid gap-3 lg:grid-cols-2">
-                    <form action="/api/content/drafts/decision" method="post" className="grid gap-2">
+                  <div className="grid gap-6">
+                    <form action="/api/content/drafts/decision" method="post" className="grid gap-4">
                       <input type="hidden" name="draft_id" value={draft.id} />
                       <input type="hidden" name="action" value="save" />
-                      <label className="grid gap-1">
-                        <span className="sr-only">LinkedIn draft title</span>
+                      <label className="grid gap-2">
+                        <span className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94]">Title</span>
                         <input
                           name="title"
                           defaultValue={draft.title}
-                          className="input-base text-sm px-2 py-1.5"
+                          className="w-full rounded border border-[#EBE8E0] bg-white px-3 py-2 text-sm text-[#2C2A26] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors"
                         />
                       </label>
-                      <label className="grid gap-1">
-                        <span className="sr-only">LinkedIn draft body</span>
+                      <label className="grid gap-2">
+                        <span className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94]">Body</span>
                         <textarea
                           name="body"
                           defaultValue={draft.body}
                           rows={8}
-                          className="input-base text-xs font-medium px-2 py-1.5"
+                          className="w-full rounded border border-[#EBE8E0] bg-white px-3 py-2 text-[13px] font-serif leading-relaxed text-[#2C2A26] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors resize-y"
                         />
                       </label>
-                      <div className="flex flex-wrap gap-2">
+                      <div>
                         <button
                           type="submit"
-                          className="rounded-md border border-white/20 bg-[#111827] px-2.5 py-1 text-xs"
+                          className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 transition-all uppercase tracking-wider"
                         >
                           Save edits
                         </button>
                       </div>
                     </form>
 
-                    <div className="rounded-lg border border-white/10 bg-[#060911] p-3">
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-[#94A3B8]">
+                    <div className="rounded border border-[#EBE8E0] bg-white p-4 shadow-sm">
+                      <p className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94] mb-3 border-b border-[#F7F6F2] pb-2">
                         Live preview
                       </p>
-                      <div className="mt-2 rounded-lg border border-white/10 bg-[#0B1220] p-3">
-                        <p className="text-sm font-semibold">{draft.title}</p>
-                        <p className="mt-2 whitespace-pre-wrap text-xs text-[#CBD5E1]">{draft.body}</p>
-                        <div className="mt-3 flex flex-wrap gap-1 text-[11px] text-[#94A3B8]">
+                      <div className="mt-2">
+                        <p className="text-sm font-medium text-[#2C2A26]">{draft.title}</p>
+                        <p className="mt-3 whitespace-pre-wrap text-[13px] font-serif leading-relaxed text-[#716E68]">{draft.body}</p>
+                        <div className="mt-4 flex flex-wrap gap-2 text-[10px] text-[#A19D94]">
                           {draft.body
                             .split(/\s+/)
                             .filter((token: string) => token.startsWith("#"))
                             .slice(0, 5)
                             .map((tag: string) => (
-                              <span key={`${draft.id}-${tag}`} className="rounded bg-white/5 px-1.5 py-0.5">
+                              <span key={`${draft.id}-${tag}`} className="rounded bg-[#FDFCFB] border border-[#EBE8E0] px-2 py-0.5 text-indigo-700 font-medium tracking-wide">
                                 {tag}
                               </span>
                             ))}
@@ -305,13 +305,13 @@ export default async function ContentStudioPage({
                     </div>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-6 pt-4 border-t border-[#EBE8E0] flex flex-wrap gap-2">
                     <form action="/api/content/drafts/decision" method="post">
                       <input type="hidden" name="draft_id" value={draft.id} />
                       <input type="hidden" name="action" value="approve" />
                       <button
                         type="submit"
-                        className="rounded-md border border-emerald-300/40 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-200"
+                        className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 transition-all uppercase tracking-wider"
                       >
                         Approve
                       </button>
@@ -324,9 +324,9 @@ export default async function ContentStudioPage({
                           <input type="hidden" name="publish_adapter" value="manual_copy" />
                           <button
                             type="submit"
-                            className="rounded-md border border-cyan-300/40 bg-cyan-500/10 px-2.5 py-1 text-xs text-cyan-200"
+                            className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 transition-all uppercase tracking-wider"
                           >
-                            Mark as Published (Manual Fallback)
+                            Mark Published (Manual)
                           </button>
                         </form>
                         <form action="/api/content/drafts/decision" method="post">
@@ -336,9 +336,9 @@ export default async function ContentStudioPage({
                           <button
                             type="submit"
                             disabled={alreadyProviderPublished}
-                            className="rounded-md border border-fuchsia-300/40 bg-fuchsia-500/10 px-2.5 py-1 text-xs text-fuchsia-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-fuchsia-700 hover:border-fuchsia-200 hover:bg-fuchsia-50 transition-all uppercase tracking-wider disabled:opacity-50 disabled:pointer-events-none"
                           >
-                            {alreadyProviderPublished ? "Already Published to LinkedIn" : "Publish to LinkedIn"}
+                            {alreadyProviderPublished ? "Already Published" : "Publish to API"}
                           </button>
                         </form>
                       </>
@@ -351,81 +351,83 @@ export default async function ContentStudioPage({
                 </div>
               ))}
               {!linkedinDrafts.length ? (
-                <p className="rounded-lg border border-dashed border-white/20 bg-[#0D1117] px-3 py-2 text-sm text-[#94A3B8]">
-                  No LinkedIn drafts yet.
-                </p>
+                <div className="py-12 flex flex-col items-center justify-center border border-dashed border-[#EBE8E0] rounded bg-[#FDFCFB]">
+                  <p className="text-sm text-[#716E68] italic">No LinkedIn drafts yet.</p>
+                </div>
               ) : null}
             </div>
           </article>
 
-          <article className="glass-card p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Newsletter Drafts</h2>
-              <span className="rounded-full bg-[#111827] px-2 py-0.5 text-xs text-[#94A3B8]">
+          <article className="bg-transparent">
+            <div className="flex items-center justify-between border-b border-[#F7F6F2] pb-4 mb-6">
+              <h2 className="text-lg font-light tracking-tight text-[#2C2A26]">Newsletter Drafts</h2>
+              <span className="px-2 py-0.5 rounded bg-white border border-[#EBE8E0] text-[10px] uppercase tracking-widest text-[#716E68] font-medium shadow-sm">
                 {newsletterDrafts.length}
               </span>
             </div>
-            <div className="mt-4 space-y-4">
+            <div className="mt-4 space-y-8">
               {newsletterDrafts.map((draft) => (
-                <div key={draft.id} className="rounded-xl border border-white/10 bg-[#0D1117] p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs uppercase tracking-[0.12em] text-[#94A3B8]">
+                <div key={draft.id} className="rounded border border-[#EBE8E0] bg-[#FDFCFB] p-6 shadow-sm flex flex-col hover:border-[#D5D1C6] transition-colors group">
+                  <div className="flex items-center justify-between gap-2 border-b border-[#EBE8E0] pb-3 mb-4">
+                    <p className="text-[10px] uppercase tracking-widest text-[#716E68] font-medium">
                       v{draft.version} | {draft.status}
                     </p>
-                    <p className="text-xs text-[#94A3B8]">
+                    <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">
                       {previewDate(draft.created_at)}
                     </p>
                   </div>
 
-                  <div className="mt-3 grid gap-3 lg:grid-cols-2">
-                    <form action="/api/content/drafts/decision" method="post" className="grid gap-2">
+                  <div className="grid gap-6">
+                    <form action="/api/content/drafts/decision" method="post" className="grid gap-4">
                       <input type="hidden" name="draft_id" value={draft.id} />
                       <input type="hidden" name="action" value="save" />
-                      <label className="grid gap-1">
-                        <span className="sr-only">Newsletter draft title</span>
+                      <label className="grid gap-2">
+                        <span className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94]">Title</span>
                         <input
                           name="title"
                           defaultValue={draft.title}
-                          className="input-base text-sm px-2 py-1.5"
+                          className="w-full rounded border border-[#EBE8E0] bg-white px-3 py-2 text-sm text-[#2C2A26] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors"
                         />
                       </label>
-                      <label className="grid gap-1">
-                        <span className="sr-only">Newsletter draft body</span>
+                      <label className="grid gap-2">
+                        <span className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94]">Body</span>
                         <textarea
                           name="body"
                           defaultValue={draft.body}
-                          rows={10}
-                          className="input-base text-xs px-2 py-1.5"
+                          rows={12}
+                          className="w-full rounded border border-[#EBE8E0] bg-white px-3 py-2 text-[13px] font-serif leading-relaxed text-[#2C2A26] focus:border-[#716E68] focus:outline-none focus:ring-1 focus:ring-[#716E68] transition-colors resize-y"
                         />
                       </label>
-                      <button
-                        type="submit"
-                        className="rounded-md border border-white/20 bg-[#111827] px-2.5 py-1 text-xs"
-                      >
-                        Save edits
-                      </button>
+                      <div>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 transition-all uppercase tracking-wider"
+                        >
+                          Save edits
+                        </button>
+                      </div>
                     </form>
 
-                    <div className="rounded-lg border border-white/10 bg-[#060911] p-3">
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-[#94A3B8]">
+                    <div className="rounded border border-[#EBE8E0] bg-white p-4 shadow-sm">
+                      <p className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94] mb-3 border-b border-[#F7F6F2] pb-2">
                         Live preview
                       </p>
-                      <div className="mt-2 rounded-lg border border-white/10 bg-[#F8FAFC] p-4 text-[#111827]">
-                        <p className="text-xs text-[#475569]">From: inhumans.io</p>
-                        <p className="mt-1 text-sm font-semibold">{draft.title}</p>
-                        <div className="mt-3 h-px bg-[#E2E8F0]" />
-                        <p className="mt-3 whitespace-pre-wrap text-xs leading-6">{draft.body}</p>
+                      <div className="mt-2 rounded bg-white p-6 border border-[#EBE8E0] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                        <p className="text-[10px] text-[#A19D94] uppercase tracking-widest font-medium mb-3">From: inhumans.io</p>
+                        <p className="text-lg font-light tracking-tight text-[#2C2A26] leading-snug">{draft.title}</p>
+                        <div className="mt-4 mb-5 h-px bg-[#EBE8E0]" />
+                        <p className="whitespace-pre-wrap text-[13px] font-serif leading-relaxed text-[#716E68]">{draft.body}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-6 pt-4 border-t border-[#EBE8E0] flex flex-wrap gap-2">
                     <form action="/api/content/drafts/decision" method="post">
                       <input type="hidden" name="draft_id" value={draft.id} />
                       <input type="hidden" name="action" value="approve" />
                       <button
                         type="submit"
-                        className="rounded-md border border-emerald-300/40 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-200"
+                        className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 transition-all uppercase tracking-wider"
                       >
                         Approve
                       </button>
@@ -436,28 +438,29 @@ export default async function ContentStudioPage({
                         <input type="hidden" name="action" value="publish" />
                         <button
                           type="submit"
-                          className="rounded-md border border-cyan-300/40 bg-cyan-500/10 px-2.5 py-1 text-xs text-cyan-200"
+                          className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 transition-all uppercase tracking-wider"
                         >
                           Mark published
                         </button>
                       </form>
                     ) : null}
                     {draft.published_at ? (
-                      <p className="text-xs text-emerald-300">
-                        Published {new Date(draft.published_at).toLocaleString()}
+                      <p className="text-[10px] text-emerald-600 font-medium tracking-widest uppercase mt-2 ml-4 self-center">
+                        Published ({new Date(draft.published_at).toLocaleDateString()})
                       </p>
                     ) : null}
                   </div>
                 </div>
               ))}
               {!newsletterDrafts.length ? (
-                <p className="rounded-lg border border-dashed border-white/20 bg-[#0D1117] px-3 py-2 text-sm text-[#94A3B8]">
-                  No newsletter drafts yet.
-                </p>
+                <div className="py-12 flex flex-col items-center justify-center border border-dashed border-[#EBE8E0] rounded bg-[#FDFCFB]">
+                  <p className="text-sm text-[#716E68] italic">No newsletter drafts yet.</p>
+                </div>
               ) : null}
             </div>
           </article>
         </section>
+      </div>
     </AppShell>
   );
 }

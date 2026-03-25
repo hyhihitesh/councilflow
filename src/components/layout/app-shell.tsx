@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Command Center" },
   { href: "/prospects", label: "Prospect Queue" },
   { href: "/outreach", label: "Outreach Writer" },
-  { href: "/pipeline", label: "Follow-Up Pipeline" },
+  { href: "/pipeline", label: "Pipeline" },
   { href: "/content-studio", label: "Content Studio" },
   { href: "/analytics", label: "Analytics" },
   { href: "/settings", label: "Settings" },
@@ -52,117 +52,106 @@ export function AppShell({
   const grace = billingAccessState === "grace";
   const primaryCta = mobileCta ?? {
     href: "/dashboard",
-    label: "Open Command Center",
+    label: "View Dashboard",
   };
 
   return (
-    <div className="min-h-screen bg-[#060911] text-[#F1F5F9]">
-      <div className="mx-auto flex w-full max-w-[1440px] gap-6 px-4 py-6 md:px-6 lg:py-8">
-        <aside className="glass-card sticky top-6 hidden h-[calc(100vh-3rem)] w-64 shrink-0 flex-col justify-between p-4 lg:flex">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-[#94A3B8]">inhumans.io</p>
-            <p className="mt-1 text-sm text-[#CBD5E1]">AI BD Operating System</p>
+    <div className="min-h-screen bg-[#F7F6F2] text-[#2C2A26] font-sans selection:bg-[#E2DECF]">
+      <div className="flex w-full min-h-screen relative">
+        
+        {/* Desktop Sidebar */}
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between border-r border-[#EBE8E0] bg-[#FDFCFB] p-8 lg:flex">
+          <div className="flex flex-col h-full">
+            <div className="mb-12">
+              <Link href="/" className="text-sm font-semibold tracking-[0.2em] uppercase text-[#2C2A26] hover:opacity-70 transition-opacity">
+                CouncilFlow
+              </Link>
+              <p className="mt-2 text-[10px] text-[#A19D94] uppercase tracking-[0.1em] font-medium opacity-80">
+                Practice Intelligence
+              </p>
+            </div>
 
-            <nav className="mt-6 grid gap-2">
+            <nav className="flex-1 flex flex-col gap-1">
               {NAV_ITEMS.map((item) => {
                 const active = isActivePath(currentPath, item.href);
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={
+                    className={`group flex items-center px-4 py-2.5 rounded text-sm transition-all duration-300 ${
                       active
-                        ? "rounded-md border border-indigo-300/40 bg-indigo-500/15 px-3 py-2 text-sm font-medium text-indigo-100"
-                        : "rounded-md border border-white/10 bg-[#0D1117] px-3 py-2 text-sm text-[#CBD5E1] hover:border-white/20"
-                    }
+                        ? "bg-[#EFECE5] text-[#2C2A26] font-medium shadow-sm"
+                        : "text-[#716E68] hover:text-[#2C2A26] hover:bg-[#F7F6F2]"
+                    }`}
                   >
+                    <span className={`mr-3 w-1.5 h-1.5 rounded-full transition-all ${active ? "bg-[#2C2A26]" : "bg-transparent group-hover:bg-[#D5D1C6]"}`}></span>
                     {item.label}
                   </Link>
                 );
               })}
             </nav>
-          </div>
 
-          <div className="grid gap-2">
-            <p className="text-xs text-[#94A3B8]">Billing and plan controls</p>
-            <Link href="/checkout?plan=pro" className="btn-base btn-primary text-center">
-              Upgrade workspace
-            </Link>
+            <div className="mt-auto pt-8 border-t border-[#EBE8E0]">
+              <div className="mb-6">
+                <p className="text-[10px] text-[#A19D94] uppercase tracking-wider mb-3">Enterprise Access</p>
+                <Link href="/checkout?plan=pro" className="inline-flex items-center justify-center w-full px-4 py-2.5 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors shadow-sm">
+                  Upgrade Plan
+                </Link>
+              </div>
+              <div className="text-[10px] text-[#D5D1C6] uppercase tracking-widest text-center">
+                v2.5.0-Flash
+              </div>
+            </div>
           </div>
         </aside>
 
-        <div className="min-w-0 flex-1 pb-20 lg:pb-0">
-          {readOnly ? (
-            <div className="mb-4 rounded-lg border border-amber-300/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-              <p className="font-medium">Workspace is in read-only mode.</p>
-              <p className="mt-1 text-xs text-amber-200">
-                Trial window has expired. Upgrade to re-enable prospecting, outreach, and automation.
-                {billingAccessContext?.trialEndsAt
-                  ? ` Trial ended on ${new Date(billingAccessContext.trialEndsAt).toLocaleDateString()}.`
-                  : ""}
-                {billingAccessContext?.graceEndsAt
-                  ? ` Grace period ended on ${new Date(billingAccessContext.graceEndsAt).toLocaleDateString()}.`
-                  : ""}
-              </p>
-              <p className="mt-2 text-xs text-amber-200">
-                Your data remains visible in read-only mode. Choose a plan to reactivate full workspace access.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                <Link
-                  href="/checkout?plan=starter"
-                  className="rounded-md border border-amber-200/40 bg-amber-400/10 px-2.5 py-1.5 text-amber-100"
-                >
-                  Upgrade: Starter
-                </Link>
-                <Link
-                  href="/checkout?plan=pro"
-                  className="rounded-md border border-amber-200/40 bg-amber-400/10 px-2.5 py-1.5 text-amber-100"
-                >
-                  Upgrade: Pro
-                </Link>
-                <Link
-                  href="/checkout?plan=premium"
-                  className="rounded-md border border-amber-200/40 bg-amber-400/10 px-2.5 py-1.5 text-amber-100"
-                >
-                  Upgrade: Premium
-                </Link>
-                <Link href="/analytics" className="rounded-md border border-amber-200/30 px-2.5 py-1.5 text-amber-100">
-                  View trial metrics
-                </Link>
-              </div>
+        {/* Main Content Area */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          
+          {/* Global Alert Bar (Billing) */}
+          {(readOnly || grace) && (
+            <div className={`py-2 px-6 flex items-center justify-center gap-4 text-xs font-medium ${readOnly ? "bg-red-50 text-red-700 border-b border-red-100" : "bg-[#EFECE5] text-[#2C2A26] border-b border-[#EBE8E0]"}`}>
+              <span>
+                {readOnly 
+                  ? "Workspace in Read-Only Mode. Trial has expired." 
+                  : `Workspace Trial active until ${billingAccessContext?.graceEndsAt ? new Date(billingAccessContext.graceEndsAt).toLocaleDateString() : 'soon'}.`}
+              </span>
+              <Link href="/portal" className="underline underline-offset-2 hover:opacity-70 transition-opacity">
+                Configure Billing →
+              </Link>
             </div>
-          ) : null}
-          {grace ? (
-            <div className="mb-4 rounded-lg border border-indigo-300/40 bg-indigo-500/10 px-4 py-3 text-sm text-indigo-100">
-              <p className="font-medium">Workspace is in grace period.</p>
-              <p className="mt-1 text-xs text-indigo-200">
-                Trial access is still enabled temporarily
-                {billingAccessContext?.graceEndsAt
-                  ? ` until ${new Date(billingAccessContext.graceEndsAt).toLocaleDateString()}.`
-                  : "."}
-              </p>
-            </div>
-          ) : null}
-          <header className="glass-card mb-6 p-5">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-[#94A3B8]">inhumans.io</p>
-                <h1 className="mt-2 text-3xl font-semibold">{title}</h1>
-                {description ? <p className="mt-2 text-[#94A3B8]">{description}</p> : null}
+          )}
+
+          {/* Page Header */}
+          <header className="px-6 py-8 sm:px-10 lg:px-12 bg-white/40 backdrop-blur-sm border-b border-[#EBE8E0]/40 sticky top-0 z-30">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="max-w-xl">
+                <h1 className="text-3xl font-light tracking-tight text-[#2C2A26] font-display">{title}</h1>
+                {description && <p className="mt-2 text-[#716E68] text-sm font-light leading-relaxed">{description}</p>}
               </div>
-              {headerActions ? <div className="flex flex-wrap gap-2">{headerActions}</div> : null}
+              {headerActions && (
+                <div className="flex flex-wrap items-center gap-3">
+                  {headerActions}
+                </div>
+              )}
             </div>
           </header>
 
-          <div className={readOnly ? "pointer-events-none opacity-65" : undefined}>{children}</div>
+          <main className="flex-1 p-6 sm:p-10 lg:p-12 max-w-7xl mx-auto w-full">
+            <div className={`animate-in fade-in duration-700 ${readOnly ? "pointer-events-none opacity-60 grayscale-[0.2]" : ""}`}>
+              {children}
+            </div>
+          </main>
         </div>
       </div>
 
-      <div className="fixed inset-x-4 bottom-4 z-50 lg:hidden">
-        <Link href={primaryCta.href} className="btn-base btn-primary block text-center">
+      {/* Mobile Floating Action Button */}
+      <div className="fixed inset-x-6 bottom-8 z-50 lg:hidden pointer-events-none">
+        <Link href={primaryCta.href} className="pointer-events-auto w-full py-4 bg-[#2C2A26] text-[#F7F6F2] shadow-xl rounded-full text-center flex items-center justify-center font-medium text-sm">
           {primaryCta.label}
         </Link>
       </div>
     </div>
   );
 }
+

@@ -106,28 +106,31 @@ export default async function ProspectsPage({
         <>
           <Link
             href="/outreach"
-            className="rounded-md border border-cyan-300/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200"
+            className="px-4 py-2 bg-[#EFECE5] text-[#2C2A26] text-xs font-medium rounded-sm hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider"
           >
-            Open outreach
+            Outreach
           </Link>
           <Link
             href="/dashboard"
-            className="rounded-md border border-white/20 bg-[#111827] px-3 py-2 text-xs"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded-sm hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
           >
-            Back to dashboard
+            Dashboard
           </Link>
         </>
       }
     >
-      {params.error ? <p className="mt-6 alert-error">{params.error}</p> : null}
-      {params.message ? <p className="mt-6 alert-success">{params.message}</p> : null}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {params.error ? <p className="mt-4 alert-error">{params.error}</p> : null}
+        {params.message ? <p className="mt-4 alert-success">{params.message}</p> : null}
 
-      <section className="mt-6 glass-card p-5 reveal-up">
-        <h2 className="text-lg font-semibold">Filter prospects</h2>
-        <form
-          method="get"
-          className="mt-4 grid gap-3 rounded-xl border border-white/10 bg-[#0D1117] p-4 md:grid-cols-4"
-        >
+        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+          <div className="mb-6 pb-6 border-b border-[#F7F6F2]">
+            <h2 className="text-xl font-light tracking-tight">Filter prospects</h2>
+          </div>
+          <form
+            method="get"
+            className="mt-4 grid gap-3 rounded border border-[#F7F6F2] bg-[#FDFCFB] p-4 md:grid-cols-4"
+          >
           <label className="grid gap-1">
             <span className="sr-only">Search prospects</span>
             <input
@@ -164,69 +167,71 @@ export default async function ProspectsPage({
           <div className="flex gap-2">
             <button
               type="submit"
-              className="rounded-md border border-cyan-300/40 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200"
+              className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
             >
               Apply
             </button>
-            <Link href="/prospects" className="btn-base btn-ghost text-[#CBD5E1]">
+            <Link href="/prospects" className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider">
               Reset
             </Link>
           </div>
         </form>
       </section>
 
-      <section className="mt-6 grid gap-3 md:grid-cols-3 stagger-children">
-        <article className="metric-card">
-          <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Visible prospects</p>
-          <p className="mt-2 text-2xl font-semibold">{totalProspects}</p>
+      <section className="mt-8 grid gap-4 md:grid-cols-3 stagger-children">
+        <article className="metric-card bg-white border border-[#EBE8E0] p-6 rounded-sm shadow-sm">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Visible prospects</p>
+          <p className="text-3xl font-light text-[#2C2A26] font-display">{totalProspects}</p>
         </article>
-        <article className="metric-card">
-          <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Qualified</p>
-          <p className="mt-2 text-2xl font-semibold">{qualifiedCount}</p>
+        <article className="metric-card bg-white border border-[#EBE8E0] p-6 rounded-sm shadow-sm">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Qualified</p>
+          <p className="text-3xl font-light text-[#2C2A26] font-display">{qualifiedCount}</p>
         </article>
-        <article className="metric-card">
-          <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Average fit score</p>
-          <p className="mt-2 text-2xl font-semibold">{averageFitScore ?? "-"}</p>
+        <article className="metric-card bg-white border border-[#EBE8E0] p-6 rounded-sm shadow-sm">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Average fit score</p>
+          <p className="text-3xl font-light text-[#2C2A26] font-display">{averageFitScore ?? "-"}</p>
         </article>
       </section>
 
-      <section className="mt-6 glass-card p-5 reveal-up">
-        <h2 className="text-lg font-semibold">Ranked queue</h2>
-        <p className="mt-2 text-sm text-[#94A3B8]">
-          Top-fit opportunities with one-click enrichment and outreach generation.
-        </p>
+      <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+        <div className="mb-6 pb-6 border-b border-[#F7F6F2]">
+          <h2 className="text-xl font-light tracking-tight">Ranked queue</h2>
+          <p className="mt-2 text-sm text-[#716E68]">
+            Top-fit opportunities with one-click enrichment and outreach generation.
+          </p>
+        </div>
 
-        <div className="mt-4 space-y-3 md:hidden">
+        <div className="mt-4 space-y-4 md:hidden">
           {(prospects ?? []).map((prospect) => (
-            <article key={`mobile-${prospect.id}`} className="rounded-xl border border-white/10 bg-[#0D1117] p-4">
+            <article key={`mobile-${prospect.id}`} className="rounded border border-[#F7F6F2] bg-[#FDFCFB] p-5">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="font-medium">{prospect.company_name}</p>
-                  <p className="mt-1 text-xs text-[#94A3B8]">{prospect.domain ?? "-"}</p>
+                  <p className="font-medium text-[#2C2A26]">{prospect.company_name}</p>
+                  <p className="mt-1 text-xs text-[#716E68]">{prospect.domain ?? "-"}</p>
                 </div>
                 <span className="status-badge capitalize">{prospect.status}</span>
               </div>
-              <p className="mt-2 text-xs text-[#CBD5E1]">
+              <p className="mt-3 text-xs text-[#716E68]">
                 Contact: {prospect.primary_contact_name ?? "-"} | {prospect.primary_contact_title ?? "-"}
               </p>
-              <p className="mt-1 text-xs text-[#CBD5E1]">
+              <p className="mt-1 text-xs text-[#716E68]">
                 Fit score: {prospect.fit_score != null ? prospect.fit_score : "-"}
               </p>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 <form action="/api/outreach/drafts/generate" method="post">
                   <input type="hidden" name="prospect_id" value={prospect.id} />
                   <button
-                    className="rounded-md border border-fuchsia-300/40 bg-fuchsia-500/10 px-3 py-1.5 text-xs text-fuchsia-200"
+                    className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
                     type="submit"
                   >
-                    Draft outreach
+                    Draft
                   </button>
                 </form>
                 <form action="/api/research/runs" method="post">
                   <input type="hidden" name="prospect_id" value={prospect.id} />
                   <input type="hidden" name="limit" value="1" />
                   <button
-                    className="rounded-md border border-amber-300/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200"
+                    className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
                     type="submit"
                   >
                     Refresh
@@ -236,49 +241,49 @@ export default async function ProspectsPage({
             </article>
           ))}
           {!prospects?.length ? (
-            <p className="rounded-lg border border-dashed border-white/20 bg-[#0D1117] px-3 py-4 text-sm text-[#94A3B8]">
+            <p className="rounded border border-dashed border-[#EBE8E0] bg-[#FDFCFB] px-5 py-6 text-sm text-[#716E68] text-center">
               No prospects found for this filter set.
             </p>
           ) : null}
         </div>
 
-        <div className="mt-4 hidden table-shell md:block">
+        <div className="mt-6 hidden table-shell md:block">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#0D1117] text-[#94A3B8]">
+            <thead>
               <tr>
-                <th className="px-4 py-3 font-medium">Company</th>
-                <th className="px-4 py-3 font-medium">Contact</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Fit score</th>
-                <th className="px-4 py-3 font-medium">Top reasons</th>
-                <th className="px-4 py-3 font-medium">Actions</th>
+                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Company</th>
+                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Contact</th>
+                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Status</th>
+                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Fit score</th>
+                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Top reasons</th>
+                <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px] text-[#A19D94]">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#F7F6F2]">
               {(prospects ?? []).map((prospect) => (
-                <tr key={prospect.id} className="border-t border-white/10 align-top">
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{prospect.company_name}</p>
-                    <p className="mt-1 text-xs text-[#94A3B8]">{prospect.domain ?? "-"}</p>
+                <tr key={prospect.id} className="hover:bg-[#FDFCFB]/50 transition-colors align-top">
+                  <td className="px-5 py-4">
+                    <p className="font-medium text-[#2C2A26]">{prospect.company_name}</p>
+                    <p className="mt-1 text-xs text-[#716E68]">{prospect.domain ?? "-"}</p>
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#CBD5E1]">
-                    <p>{prospect.primary_contact_name ?? "-"}</p>
-                    <p className="mt-1 text-[#94A3B8]">{prospect.primary_contact_title ?? "-"}</p>
-                    <p className="mt-1 text-[#94A3B8]">{prospect.primary_contact_email ?? "-"}</p>
+                  <td className="px-5 py-4 text-xs text-[#716E68]">
+                    <p className="font-medium text-[#2C2A26]">{prospect.primary_contact_name ?? "-"}</p>
+                    <p className="mt-1">{prospect.primary_contact_title ?? "-"}</p>
+                    <p className="mt-1">{prospect.primary_contact_email ?? "-"}</p>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4">
                     <span className="status-badge capitalize">{prospect.status}</span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4">
                     {prospect.fit_score != null ? (
-                      <span className="rounded-full border border-emerald-300/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-200">
+                      <span className="rounded px-2.5 py-1 text-xs font-medium border border-emerald-100 bg-emerald-50 text-emerald-800">
                         {prospect.fit_score}
                       </span>
                     ) : (
-                      "-"
+                      <span className="text-[#A19D94]">-</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#CBD5E1]">
+                  <td className="px-5 py-4 text-xs text-[#716E68]">
                     {Array.isArray(prospect.score_explanation) && prospect.score_explanation.length ? (
                       <div className="space-y-1">
                         {prospect.score_explanation.slice(0, 2).map((item, index) => (
@@ -288,46 +293,46 @@ export default async function ProspectsPage({
                         ))}
                       </div>
                     ) : (
-                      <span className="text-[#94A3B8]">No reasons yet</span>
+                      <span className="text-[#A19D94] italic">No reasons yet</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4">
                     <div className="flex flex-wrap gap-2">
                       <form action="/api/outreach/drafts/generate" method="post">
                         <input type="hidden" name="prospect_id" value={prospect.id} />
                         <button
-                          className="rounded-md border border-fuchsia-300/40 bg-fuchsia-500/10 px-3 py-1.5 text-xs text-fuchsia-200"
+                          className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
                           type="submit"
                         >
-                          Draft outreach
+                          Draft
                         </button>
                       </form>
                       <form action="/api/prospects/enrich/tavily" method="post">
                         <input type="hidden" name="prospect_id" value={prospect.id} />
                         <button
-                          className="rounded-md border border-emerald-300/40 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-200"
+                          className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
                           type="submit"
                         >
-                          Run Tavily
+                          Tavily
                         </button>
                       </form>
                       <form action="/api/prospects/enrich/firecrawl" method="post">
                         <input type="hidden" name="prospect_id" value={prospect.id} />
                         <button
-                          className="rounded-md border border-cyan-300/40 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200"
+                          className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
                           type="submit"
                         >
-                          Run Firecrawl
+                          Firecrawl
                         </button>
                       </form>
                       <form action="/api/research/runs" method="post">
                         <input type="hidden" name="prospect_id" value={prospect.id} />
                         <input type="hidden" name="limit" value="1" />
                         <button
-                          className="rounded-md border border-amber-300/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200"
+                          className="px-3 py-1.5 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
                           type="submit"
                         >
-                          Refresh all
+                          Refresh
                         </button>
                       </form>
                     </div>
@@ -335,8 +340,8 @@ export default async function ProspectsPage({
                 </tr>
               ))}
               {!prospects?.length ? (
-                <tr className="border-t border-white/10">
-                  <td className="px-4 py-6 text-sm text-[#94A3B8]" colSpan={6}>
+                <tr>
+                  <td className="px-5 py-8 text-sm text-[#716E68] text-center" colSpan={6}>
                     No prospects found for this filter set.
                   </td>
                 </tr>
@@ -345,6 +350,7 @@ export default async function ProspectsPage({
           </table>
         </div>
       </section>
+      </div>
     </AppShell>
   );
 }

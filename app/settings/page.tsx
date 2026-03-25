@@ -103,14 +103,14 @@ export default async function SettingsPage({
         <>
           <Link
             href="/dashboard"
-            className="rounded-md border border-white/20 bg-[#111827] px-3 py-2 text-xs"
+            className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
           >
-            Back to dashboard
+            Dashboard
           </Link>
-          <form action={signOutAction}>
+          <form action={signOutAction} className="ml-2">
             <button
               type="submit"
-              className="rounded-md border border-white/20 bg-[#161B22] px-3 py-2 text-xs"
+              className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
             >
               Sign out
             </button>
@@ -118,124 +118,128 @@ export default async function SettingsPage({
         </>
       }
     >
-      {params.error ? <p className="mt-6 alert-error">{params.error}</p> : null}
-      {params.message ? <p className="mt-6 alert-success">{params.message}</p> : null}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {params.error ? <p className="mt-4 alert-error">{params.error}</p> : null}
+        {params.message ? <p className="mt-4 alert-success">{params.message}</p> : null}
 
-      <section className="mt-6 grid gap-4 md:grid-cols-2 stagger-children">
-        <article className="glass-card p-5">
-          <h2 className="text-lg font-semibold">Account</h2>
-          <dl className="mt-4 grid gap-3 text-sm">
-            <div className="rounded-lg border border-white/10 bg-[#0D1117] px-3 py-2">
-              <dt className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Display name</dt>
-              <dd className="mt-1">{profile?.display_name ?? "-"}</dd>
-            </div>
-            <div className="rounded-lg border border-white/10 bg-[#0D1117] px-3 py-2">
-              <dt className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Email</dt>
-              <dd className="mt-1">{user.email ?? "-"}</dd>
-            </div>
-            <div className="rounded-lg border border-white/10 bg-[#0D1117] px-3 py-2">
-              <dt className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Role</dt>
-              <dd className="mt-1 capitalize">{primary.role}</dd>
-            </div>
-          </dl>
-        </article>
+        <section className="mt-6 grid gap-6 md:grid-cols-2 stagger-children">
+          <article className="bg-[#FDFCFB] border border-[#EBE8E0] p-8 shadow-sm rounded-sm">
+            <h2 className="text-xl font-light tracking-tight text-[#2C2A26]">Account</h2>
+            <dl className="mt-6 grid gap-4 text-sm">
+              <div className="rounded border border-[#EBE8E0] bg-white px-4 py-3 shadow-sm">
+                <dt className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Display name</dt>
+                <dd className="mt-1 text-[#2C2A26] font-medium">{profile?.display_name ?? "-"}</dd>
+              </div>
+              <div className="rounded border border-[#EBE8E0] bg-white px-4 py-3 shadow-sm">
+                <dt className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Email</dt>
+                <dd className="mt-1 text-[#2C2A26] font-medium">{user.email ?? "-"}</dd>
+              </div>
+              <div className="rounded border border-[#EBE8E0] bg-white px-4 py-3 shadow-sm">
+                <dt className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Role</dt>
+                <dd className="mt-1 text-[#2C2A26] font-medium capitalize">{primary.role}</dd>
+              </div>
+            </dl>
+          </article>
 
-        <article className="glass-card p-5">
-          <h2 className="text-lg font-semibold">Integrations</h2>
-          <div className="mt-4 grid gap-3 text-sm">
-            <div className="rounded-lg border border-white/10 bg-[#0D1117] px-3 py-2">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Google</p>
-              <p className={googleConnected ? "mt-1 text-emerald-200" : "mt-1 text-amber-200"}>
-                {googleConnected ? "Connected" : "Not connected"}
-              </p>
-              {!googleConnected ? (
-                <button
-                  disabled
-                  className="mt-2 inline-block rounded-md border border-white/20 bg-[#111827] px-2.5 py-1 text-xs text-[#CBD5E1] opacity-50 cursor-not-allowed"
-                >
-                  Connect Google (Coming Soon)
-                </button>
-              ) : null}
+          <article className="bg-[#FDFCFB] border border-[#EBE8E0] p-8 shadow-sm rounded-sm">
+            <h2 className="text-xl font-light tracking-tight text-[#2C2A26]">Integrations</h2>
+            <div className="mt-6 grid gap-4 text-sm">
+              <div className="rounded border border-[#EBE8E0] bg-white px-4 py-3 shadow-sm">
+                <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Google</p>
+                <p className={googleConnected ? "mt-1 font-medium text-emerald-700" : "mt-1 font-medium text-amber-700"}>
+                  {googleConnected ? "Connected" : "Not connected"}
+                </p>
+                {!googleConnected ? (
+                  <button
+                    disabled
+                    className="mt-3 px-3 py-1.5 border border-[#EBE8E0] text-[#A19D94] bg-[#F7F6F2] text-[10px] font-medium rounded uppercase tracking-wider cursor-not-allowed"
+                  >
+                    Connect Google (Coming Soon)
+                  </button>
+                ) : null}
+              </div>
+              <div className="rounded border border-[#EBE8E0] bg-white px-4 py-3 shadow-sm">
+                <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Microsoft</p>
+                <p className={microsoftConnected ? "mt-1 font-medium text-emerald-700" : "mt-1 font-medium text-amber-700"}>
+                  {microsoftConnected ? "Connected" : "Not connected"}
+                </p>
+                {!microsoftConnected ? (
+                  <button
+                    disabled
+                    className="mt-3 px-3 py-1.5 border border-[#EBE8E0] text-[#A19D94] bg-[#F7F6F2] text-[10px] font-medium rounded uppercase tracking-wider cursor-not-allowed"
+                  >
+                    Connect Microsoft (Coming Soon)
+                  </button>
+                ) : null}
+              </div>
+              <div className="rounded border border-[#EBE8E0] bg-white px-4 py-3 shadow-sm">
+                <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Calendar sync</p>
+                <p className="mt-1 font-medium text-emerald-700">Google: active</p>
+                <p className="mt-1 font-medium text-amber-700">Outlook: deferred in this release</p>
+              </div>
             </div>
-            <div className="rounded-lg border border-white/10 bg-[#0D1117] px-3 py-2">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Microsoft</p>
-              <p className={microsoftConnected ? "mt-1 text-emerald-200" : "mt-1 text-amber-200"}>
-                {microsoftConnected ? "Connected" : "Not connected"}
-              </p>
-              {!microsoftConnected ? (
-                <button
-                  disabled
-                  className="mt-2 inline-block rounded-md border border-white/20 bg-[#111827] px-2.5 py-1 text-xs text-[#CBD5E1] opacity-50 cursor-not-allowed"
-                >
-                  Connect Microsoft (Coming Soon)
-                </button>
-              ) : null}
-            </div>
-            <div className="rounded-lg border border-white/10 bg-[#0D1117] px-3 py-2">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Calendar sync</p>
-              <p className="mt-1 text-emerald-200">Google: active</p>
-              <p className="mt-1 text-amber-200">Outlook: deferred in this release</p>
-            </div>
+          </article>
+        </section>
+
+        <section className="mt-12 bg-transparent reveal-up">
+          <div className="flex items-center justify-between border-b border-[#F7F6F2] pb-4 mb-6">
+            <h2 className="text-xl font-light tracking-tight text-[#2C2A26]">Billing (Polar)</h2>
           </div>
-        </article>
-      </section>
+          <p className="text-sm text-[#716E68]">
+            Manage workspace subscription and owner-only billing actions.
+          </p>
 
-      <section className="mt-6 glass-card p-5 reveal-up">
-        <h2 className="text-lg font-semibold">Billing (Polar)</h2>
-        <p className="mt-2 text-sm text-[#94A3B8]">
-          Manage workspace subscription and owner-only billing actions.
-        </p>
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            <article className="rounded border border-[#EBE8E0] bg-white px-5 py-4 shadow-sm">
+              <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Status</p>
+              <p className={billingIsActive ? "mt-2 font-medium text-emerald-700" : "mt-2 font-medium text-amber-700"}>
+                {billingStatus ?? "inactive"}
+              </p>
+            </article>
+            <article className="rounded border border-[#EBE8E0] bg-white px-5 py-4 shadow-sm">
+              <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Plan</p>
+              <p className="mt-2 font-medium text-[#2C2A26]">{billingPlanLabel}</p>
+            </article>
+            <article className="rounded border border-[#EBE8E0] bg-white px-5 py-4 shadow-sm">
+              <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Period end</p>
+              <p className="mt-2 text-sm text-[#716E68] font-medium">{billingPeriodEnd ? new Date(billingPeriodEnd).toLocaleDateString() : "-"}</p>
+            </article>
+            <article className="rounded border border-[#EBE8E0] bg-white px-5 py-4 shadow-sm">
+              <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Auto-renew</p>
+              <p className="mt-2 text-sm text-[#716E68] font-medium">{billingCancelAtPeriodEnd ? "Cancels at period end" : "On"}</p>
+            </article>
+            <article className="rounded border border-[#EBE8E0] bg-white px-5 py-4 shadow-sm">
+              <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Enforcement</p>
+              <p className="mt-2 text-sm text-[#716E68] font-medium">
+                {isBillingEnforcementEnabled() ? "Enforced" : "Bypassed (env override)"}
+              </p>
+            </article>
+          </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-4">
-          <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Status</p>
-            <p className={billingIsActive ? "mt-2 font-semibold text-emerald-200" : "mt-2 font-semibold text-amber-200"}>
-              {billingStatus ?? "inactive"}
-            </p>
-          </article>
-          <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Plan</p>
-            <p className="mt-2 font-semibold">{billingPlanLabel}</p>
-          </article>
-          <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Period end</p>
-            <p className="mt-2 text-sm">{billingPeriodEnd ? new Date(billingPeriodEnd).toLocaleDateString() : "-"}</p>
-          </article>
-          <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Auto-renew</p>
-            <p className="mt-2 text-sm">{billingCancelAtPeriodEnd ? "Cancels at period end" : "On"}</p>
-          </article>
-          <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.14em] text-[#94A3B8]">Enforcement</p>
-            <p className="mt-2 text-sm">
-              {isBillingEnforcementEnabled() ? "Enforced" : "Bypassed (env override)"}
-            </p>
-          </article>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          {isOwner ? (
-            <>
-              <Link
-                href="/portal"
-                className="rounded-md border border-cyan-300/40 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200"
-              >
-                Open billing portal
-              </Link>
-              <Link
-                href="/checkout?plan=pro"
-                className="rounded-md border border-indigo-300/40 bg-indigo-500/10 px-3 py-2 text-xs text-indigo-200"
-              >
-                Open checkout
-              </Link>
-            </>
-          ) : (
-            <span className="rounded-md border border-white/20 bg-[#0D1117] px-3 py-2 text-xs text-[#94A3B8]">
-              Owner access required for billing actions
-            </span>
-          )}
-        </div>
-      </section>
+          <div className="mt-8 flex flex-wrap gap-3">
+            {isOwner ? (
+              <>
+                <Link
+                  href="/portal"
+                  className="px-6 py-3 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 transition-all uppercase tracking-wider shadow-sm"
+                >
+                  Open billing portal
+                </Link>
+                <Link
+                  href="/checkout?plan=pro"
+                  className="px-6 py-3 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 transition-all uppercase tracking-wider shadow-sm"
+                >
+                  Open checkout
+                </Link>
+              </>
+            ) : (
+              <span className="px-6 py-3 border border-[#EBE8E0] bg-[#FDFCFB] text-[#A19D94] text-[11px] font-medium rounded uppercase tracking-wider cursor-not-allowed">
+                Owner access required for billing actions
+              </span>
+            )}
+          </div>
+        </section>
+      </div>
     </AppShell>
   );
 }

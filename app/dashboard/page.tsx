@@ -352,6 +352,36 @@ export default async function DashboardPage({
   const agentRunsFeed = agentRunsFeedResult.data ?? [];
   const agentToolCallsFeed = agentToolCallsFeedResult.data ?? [];
 
+  const addProspectAction = async (formData: FormData) => {
+    "use server";
+    const supabase = await createClient();
+    const company_name = formData.get("company_name") as string;
+    const domain = formData.get("domain") as string;
+    const primary_contact_name = formData.get("primary_contact_name") as string;
+    const primary_contact_email = formData.get("primary_contact_email") as string;
+    const primary_contact_title = formData.get("primary_contact_title") as string;
+    const linkedin_url = formData.get("linkedin_url") as string;
+    const firm_id = formData.get("firm_id") as string;
+
+    const { error } = await supabase.from("prospects").insert({
+      firm_id,
+      company_name,
+      domain,
+      primary_contact_name,
+      primary_contact_email,
+      primary_contact_title,
+      linkedin_url,
+      status: "researched",
+      pipeline_stage: "researched",
+    });
+
+    if (error) {
+      redirect(`/dashboard?error=${encodeURIComponent(error.message)}#manual-ingestion`);
+    }
+
+    redirect("/dashboard?message=Prospect%20ingested%20successfully#manual-ingestion");
+  };
+
   return (
     <AppShell
       title={`Welcome${user.email ? `, ${user.email}` : ""}`}
@@ -369,27 +399,27 @@ export default async function DashboardPage({
       mobileCta={{ href: "/outreach", label: "Open Outreach Writer" }}
       headerActions={
         <>
-          <Link className="rounded-md border border-cyan-300/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200" href="/outreach">
-            Outreach
-          </Link>
-          <Link className="rounded-md border border-amber-300/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200" href="/pipeline">
-            Pipeline
-          </Link>
-          <Link className="rounded-md border border-emerald-300/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200" href="/content-studio">
-            Content
-          </Link>
-          <form action={signOutAction}>
-            <button
-              type="submit"
-              className="rounded-md border border-white/20 bg-[#161B22] px-3 py-2 text-xs"
-            >
-              Sign out
-            </button>
-          </form>
+                <Link className="px-4 py-2 bg-[#EFECE5] text-[#2C2A26] text-xs font-medium rounded-sm hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider" href="/outreach">
+                  New Outreach
+                </Link>
+                <Link className="px-4 py-2 bg-[#EFECE5] text-[#2C2A26] text-xs font-medium rounded-sm hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider" href="/pipeline">
+                  Pipeline
+                </Link>
+                <Link className="px-4 py-2 bg-[#EFECE5] text-[#2C2A26] text-xs font-medium rounded-sm hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider" href="/content-studio">
+                  Content
+                </Link>
+                <form action={signOutAction}>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-xs font-medium rounded-sm hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
+                  >
+                    Sign out
+                  </button>
+                </form>
         </>
       }
     >
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {params.error ? (
           <p className="mt-4 alert-error">
             {params.error}
@@ -402,165 +432,162 @@ export default async function DashboardPage({
         ) : null}
 
 
-        <section className="mt-6 glass-card p-6 reveal-up">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-6 pb-6 border-b border-[#F7F6F2]">
             <div>
-              <h2 className="text-xl font-medium">Billing & Subscription</h2>
-              <p className="mt-2 text-sm text-[#94A3B8]">
-                Polar checkout and customer portal for your firm workspace.
+              <h2 className="text-xl font-light tracking-tight">Billing & Subscription</h2>
+              <p className="mt-2 text-sm text-[#716E68]">
+                Enterprise workspace controls and firm-wide licensing.
               </p>
             </div>
             {isOwner ? (
               <Link
                 href="/portal"
-                className="rounded-md border border-cyan-300/40 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200"
+                className="px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-xs font-medium rounded hover:bg-[#4A4742] transition-colors uppercase tracking-wider"
               >
-                Manage billing portal
+                Billing Portal
               </Link>
             ) : (
-              <span className="rounded-md border border-white/20 bg-[#0D1117] px-3 py-2 text-xs text-[#94A3B8]">
-                Owner access required
+              <span className="px-3 py-1 bg-[#EFECE5] text-[#A19D94] text-[10px] uppercase tracking-widest font-medium rounded">
+                Owner Access Restricted
               </span>
             )}
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-4 stagger-children">
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Status</p>
-              <p className={billingIsActive ? "mt-2 text-lg font-semibold text-emerald-200 live-status" : "mt-2 text-lg font-semibold text-amber-200"}>
+          <div className="mt-8 grid gap-4 md:grid-cols-4 stagger-children">
+            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Workspace Status</p>
+              <p className={billingIsActive ? "text-lg font-medium text-[#6B705C] flex items-center gap-2" : "text-lg font-medium text-[#B79455]"}>
+                {billingIsActive && <span className="w-1.5 h-1.5 rounded-full bg-[#6B705C] animate-pulse"></span>}
                 {billingStatus ?? "inactive"}
               </p>
             </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Plan</p>
-              <p className="mt-2 text-lg font-semibold">{billingPlanLabel}</p>
+            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Current Tier</p>
+              <p className="text-lg font-medium">{billingPlanLabel}</p>
             </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Period end</p>
-              <p className="mt-2 text-sm font-medium text-[#CBD5E1]">
+            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Renewal Date</p>
+              <p className="text-sm font-medium">
                 {billingPeriodEnd ? new Date(billingPeriodEnd).toLocaleDateString() : "-"}
               </p>
             </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Auto-renew</p>
-              <p className="mt-2 text-sm font-medium text-[#CBD5E1]">
-                {billingCancelAtPeriodEnd ? "Cancels at period end" : "On"}
+            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Cycle Management</p>
+              <p className="text-sm font-medium">
+                {billingCancelAtPeriodEnd ? "Terminating at end" : "Active Auto-renew"}
               </p>
             </article>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-8 flex flex-wrap gap-3">
             {isOwner ? (
               <>
                 <Link
                   href="/checkout?plan=starter"
-                  className="rounded-md border border-emerald-300/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200"
+                  className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
                 >
-                  Choose Starter
+                  Starter
                 </Link>
                 <Link
                   href="/checkout?plan=pro"
-                  className="rounded-md border border-amber-300/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"
+                  className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
                 >
-                  Choose Pro
+                  Pro
                 </Link>
                 <Link
                   href="/checkout?plan=premium"
-                  className="rounded-md border border-fuchsia-300/40 bg-fuchsia-500/10 px-3 py-2 text-xs text-fuchsia-200"
+                  className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
                 >
-                  Choose Premium
+                  Premium
                 </Link>
               </>
             ) : null}
           </div>
+        </section>
 
-          {!isOwner ? (
-            <p className="mt-3 text-xs text-[#94A3B8]">
-              Only firm owners can open checkout or manage billing.
+        <section className="mt-8 grid gap-4 md:grid-cols-3 stagger-children">
+          <article className="metric-card bg-white border border-[#EBE8E0] p-6 rounded-sm shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Active Counsel</p>
+            <p className="text-3xl font-light text-[#2C2A26] font-display">{firmMembers?.length ?? 0}</p>
+          </article>
+          <article className="metric-card bg-white border border-[#EBE8E0] p-6 rounded-sm shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Firm Administrators</p>
+            <p className="text-3xl font-light text-[#2C2A26] font-display">{ownerCount}</p>
+          </article>
+          <article className="metric-card bg-white border border-[#EBE8E0] p-6 rounded-sm shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Pending Access</p>
+            <p className="text-3xl font-light text-[#2C2A26] font-display">{pendingInvites}</p>
+          </article>
+        </section>
+
+        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+          <div className="mb-8">
+            <h2 className="text-xl font-light tracking-tight">Intelligence & Conversion Funnel</h2>
+            <p className="mt-2 text-sm text-[#716E68]">
+              Operational throughput across the outreach lifecycle.
             </p>
-          ) : null}
-        </section>
+          </div>
 
-        <section className="mt-6 grid gap-3 md:grid-cols-3 stagger-children">
-          <article className="metric-card">
-            <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Team members</p>
-            <p className="mt-2 text-2xl font-semibold">{firmMembers?.length ?? 0}</p>
-          </article>
-          <article className="metric-card">
-            <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Owners</p>
-            <p className="mt-2 text-2xl font-semibold">{ownerCount}</p>
-          </article>
-          <article className="metric-card">
-            <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Pending invites</p>
-            <p className="mt-2 text-2xl font-semibold">{pendingInvites}</p>
-          </article>
-        </section>
-
-        <section className="mt-6 glass-card p-6 reveal-up">
-          <h2 className="text-xl font-medium">Sprint 5 KPI & Conversion Funnel</h2>
-          <p className="mt-2 text-sm text-[#94A3B8]">
-            Metrics are derived from outreach events and pipeline stage progression.
-          </p>
-
-          <div className="mt-4 grid gap-3 md:grid-cols-5 stagger-children">
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Drafts generated</p>
-              <p className="mt-2 text-2xl font-semibold">{funnel.generated}</p>
+          <div className="grid gap-4 md:grid-cols-5 stagger-children">
+            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Drafts</p>
+              <p className="text-2xl font-light font-display">{funnel.generated}</p>
             </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Approved</p>
-              <p className="mt-2 text-2xl font-semibold">{funnel.approved}</p>
+            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Approved</p>
+              <p className="text-2xl font-light font-display">{funnel.approved}</p>
             </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Sent</p>
-              <p className="mt-2 text-2xl font-semibold">{funnel.sent}</p>
+            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Dispatched</p>
+              <p className="text-2xl font-light font-display">{funnel.sent}</p>
             </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Follow-ups due</p>
-              <p className="mt-2 text-2xl font-semibold">{dueFollowUps}</p>
+            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Follow-ups</p>
+              <p className="text-2xl font-light font-display">{dueFollowUps}</p>
             </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Published content (month)</p>
-              <p className="mt-2 text-2xl font-semibold">{publishedContentThisMonth}</p>
+            <article className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Studio Content</p>
+              <p className="text-2xl font-light font-display">{publishedContentThisMonth}</p>
             </article>
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-5 stagger-children">
-            <article className="rounded-lg border border-emerald-300/30 bg-emerald-500/10 px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-emerald-200">Approval rate</p>
-              <p className="mt-2 text-xl font-semibold text-emerald-100">{funnel.approvedRate}%</p>
+          <div className="mt-6 grid gap-4 md:grid-cols-5 stagger-children">
+            <article className="rounded border border-emerald-50 bg-emerald-50/20 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-widest text-[#6B705C] mb-1">Approval</p>
+              <p className="text-lg font-medium text-[#6B705C]">{funnel.approvedRate}%</p>
             </article>
-            <article className="rounded-lg border border-cyan-300/30 bg-cyan-500/10 px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-cyan-200">Send rate</p>
-              <p className="mt-2 text-xl font-semibold text-cyan-100">{funnel.sentRateFromApproved}%</p>
+            <article className="rounded border border-blue-50 bg-blue-50/20 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-widest text-blue-600/70 mb-1">Send Rate</p>
+              <p className="text-lg font-medium text-blue-700/80">{funnel.sentRateFromApproved}%</p>
             </article>
-            <article className="rounded-lg border border-indigo-300/30 bg-indigo-500/10 px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-indigo-200">Reply rate</p>
-              <p className="mt-2 text-xl font-semibold text-indigo-100">{funnel.replyRateFromSent}%</p>
+            <article className="rounded border border-stone-100 bg-stone-50/20 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-widest text-stone-500 mb-1">Response</p>
+              <p className="text-lg font-medium text-stone-700">{funnel.replyRateFromSent}%</p>
             </article>
-            <article className="rounded-lg border border-fuchsia-300/30 bg-fuchsia-500/10 px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-fuchsia-200">Meeting rate</p>
-              <p className="mt-2 text-xl font-semibold text-fuchsia-100">{funnel.meetingRateFromSent}%</p>
+            <article className="rounded border border-stone-100 bg-stone-50/20 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-widest text-stone-500 mb-1">Briefing</p>
+              <p className="text-lg font-medium text-stone-700">{funnel.meetingRateFromSent}%</p>
             </article>
-            <article className="rounded-lg border border-amber-300/30 bg-amber-500/10 px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-amber-200">Win rate</p>
-              <p className="mt-2 text-xl font-semibold text-amber-100">{funnel.winRateFromSent}%</p>
+            <article className="rounded border border-amber-50 bg-amber-50/20 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-widest text-[#B79455] mb-1">Win Rate</p>
+              <p className="text-lg font-medium text-[#B79455]">{funnel.winRateFromSent}%</p>
             </article>
           </div>
 
-          <div className="mt-6 table-shell">
+          <div className="mt-8 table-shell">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#0D1117] text-[#94A3B8]">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 font-medium">Pipeline stage</th>
-                  <th className="px-4 py-3 font-medium">Count</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Pipeline Stage</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Active Prospects</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#F7F6F2]">
                 {PIPELINE_STAGES.map((stage) => (
-                  <tr key={`stage-row-${stage}`} className="border-t border-white/10">
-                    <td className="px-4 py-3 capitalize">{stage}</td>
-                    <td className="px-4 py-3">{stageCounts[stage]}</td>
+                  <tr key={`stage-row-${stage}`} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                    <td className="px-5 py-4 capitalize font-medium text-[#2C2A26]">{stage}</td>
+                    <td className="px-5 py-4 text-[#716E68]">{stageCounts[stage]}</td>
                   </tr>
                 ))}
               </tbody>
@@ -568,156 +595,156 @@ export default async function DashboardPage({
           </div>
         </section>
 
-        <section className="mt-6 glass-card p-6 reveal-up">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-6 pb-6 border-b border-[#F7F6F2]">
             <div>
-              <h2 className="text-xl font-medium">Agent Activity & Audit Export</h2>
-              <p className="mt-2 text-sm text-[#94A3B8]">
-                Recent 30-day operational feed for agent runs and tool calls.
+              <h2 className="text-xl font-light tracking-tight">Agent Activity & Audit</h2>
+              <p className="mt-2 text-sm text-[#716E68]">
+                Recent 30-day operational telemetry for automated workflows.
               </p>
             </div>
             <div className="flex gap-2">
               <a
                 href="/api/audit/export?format=json&days=30"
-                className="rounded-md border border-cyan-300/40 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-200"
+                className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-[#FDFCFB] transition-all uppercase tracking-widest"
               >
-                Export JSON (30d)
+                Export JSON
               </a>
               <a
                 href="/api/audit/export?format=csv&days=30"
-                className="rounded-md border border-fuchsia-300/40 bg-fuchsia-500/10 px-3 py-1.5 text-xs text-fuchsia-200"
+                className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-[#FDFCFB] transition-all uppercase tracking-widest"
               >
-                Export CSV (30d)
+                Export CSV
               </a>
             </div>
           </div>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <article className="rounded-xl border border-white/10 bg-[#0D1117] p-4">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-[#94A3B8]">
-                Agent runs
-              </h3>
-              <div className="mt-3 space-y-2">
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            <article>
+              <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-4">Autonomous Runs</h3>
+              <div className="space-y-3">
                 {agentRunsFeed.map((run) => (
                   <div
                     key={`agent-run-${run.id}`}
-                    className="rounded-lg border border-white/10 bg-[#111827] px-3 py-2"
+                    className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-4 py-3 shadow-sm hover:border-[#D5D1C6] transition-all"
                   >
-                    <p className="text-xs text-[#CBD5E1]">
-                      <span className="uppercase tracking-wide text-[#94A3B8]">{run.run_type}</span>{" "}
-                      {run.status}
-                    </p>
-                    <p className="mt-1 text-[11px] text-[#94A3B8]">
-                      Run {run.id.slice(0, 8)} | {new Date(run.created_at).toLocaleString()}
+                    <div className="flex justify-between items-start">
+                      <p className="text-xs font-medium text-[#2C2A26]">
+                        <span className="uppercase tracking-wider text-[10px] text-[#A19D94] mr-2">{run.run_type}</span>
+                        {run.status}
+                      </p>
+                    </div>
+                    <p className="mt-1 text-[10px] text-[#A19D94] uppercase tracking-tight">
+                      {run.id.slice(0, 8)} • {new Date(run.created_at).toLocaleString()}
                     </p>
                   </div>
                 ))}
-                {!agentRunsFeed.length ? (
-                  <p className="rounded-lg border border-dashed border-white/20 bg-[#111827] px-3 py-2 text-sm text-[#94A3B8]">
-                    No agent run records in the last 30 days.
-                  </p>
-                ) : null}
+                {!agentRunsFeed.length && (
+                  <div className="rounded border border-dashed border-[#EBE8E0] px-4 py-6 text-center">
+                    <p className="text-xs text-[#A19D94]">No records in the current window.</p>
+                  </div>
+                )}
               </div>
             </article>
 
-            <article className="rounded-xl border border-white/10 bg-[#0D1117] p-4">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-[#94A3B8]">
-                Tool calls
-              </h3>
-              <div className="mt-3 space-y-2">
+            <article>
+              <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-4">Intelligence Signals</h3>
+              <div className="space-y-3">
                 {agentToolCallsFeed.map((call) => (
                   <div
                     key={`agent-call-${call.id}`}
-                    className="rounded-lg border border-white/10 bg-[#111827] px-3 py-2"
+                    className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-4 py-3 shadow-sm hover:border-[#D5D1C6] transition-all"
                   >
-                    <p className="text-xs text-[#CBD5E1]">
-                      <span className="uppercase tracking-wide text-[#94A3B8]">{call.tool_name}</span>{" "}
-                      {call.status}
-                    </p>
-                    <p className="mt-1 text-[11px] text-[#94A3B8]">
-                      Run {call.run_id.slice(0, 8)} | {call.duration_ms ?? "-"}ms |{" "}
-                      {new Date(call.created_at).toLocaleString()}
+                    <div className="flex justify-between items-start">
+                      <p className="text-xs font-medium text-[#2C2A26]">
+                        <span className="uppercase tracking-wider text-[10px] text-[#A19D94] mr-2">{call.tool_name}</span>
+                        {call.status}
+                      </p>
+                      <span className="text-[10px] text-[#A19D94]">{call.duration_ms ?? "-"}ms</span>
+                    </div>
+                    <p className="mt-1 text-[10px] text-[#A19D94] uppercase tracking-tight">
+                      {call.run_id.slice(0, 8)} • {new Date(call.created_at).toLocaleString()}
                     </p>
                   </div>
                 ))}
-                {!agentToolCallsFeed.length ? (
-                  <p className="rounded-lg border border-dashed border-white/20 bg-[#111827] px-3 py-2 text-sm text-[#94A3B8]">
-                    No agent tool-call records in the last 30 days.
-                  </p>
-                ) : null}
+                {!agentToolCallsFeed.length && (
+                  <div className="rounded border border-dashed border-[#EBE8E0] px-4 py-6 text-center">
+                    <p className="text-xs text-[#A19D94]">No signal records detected.</p>
+                  </div>
+                )}
               </div>
             </article>
           </div>
         </section>
 
-        <section className="mt-6 glass-card p-6 reveal-up">
-          <h2 className="text-xl font-medium">Connected sign-in providers</h2>
-          <p className="mt-2 text-sm text-[#94A3B8]">
-            OAuth provider status for your current user account.
-          </p>
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <div className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3 text-sm">
-              <p className="font-medium">Google</p>
-              <p className={hasGoogleAuth ? "mt-1 text-emerald-300" : "mt-1 text-[#94A3B8]"}>
-                {hasGoogleAuth ? "Connected" : "Not connected"}
+        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+          <div className="mb-8">
+            <h2 className="text-xl font-light tracking-tight">Connected Identity Providers</h2>
+            <p className="mt-2 text-sm text-[#716E68]">
+              Authentication state for enterprise resource access.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Google Workspace</p>
+              <p className={hasGoogleAuth ? "text-sm font-medium text-[#6B705C]" : "text-sm font-medium text-[#A19D94]"}>
+                {hasGoogleAuth ? "✓ Authenticated" : "Not connected"}
               </p>
             </div>
-            <div className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3 text-sm">
-              <p className="font-medium">Microsoft</p>
-              <p className={hasMicrosoftAuth ? "mt-1 text-emerald-300" : "mt-1 text-[#94A3B8]"}>
-                {hasMicrosoftAuth ? "Connected" : "Not connected"}
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Microsoft 365</p>
+              <p className={hasMicrosoftAuth ? "text-sm font-medium text-[#6B705C]" : "text-sm font-medium text-[#A19D94]"}>
+                {hasMicrosoftAuth ? "✓ Authenticated" : "Not connected"}
               </p>
             </div>
           </div>
-          <p className="mt-3 text-xs text-[#94A3B8]">
-            To connect a provider, sign out and use &quot;Continue with Google/Microsoft&quot; on the sign-in page.
-          </p>
         </section>
 
-        <section className="mt-6 glass-card p-6 reveal-up">
-          <h2 className="text-xl font-medium">Team & access</h2>
-          <p className="mt-2 text-sm text-[#94A3B8]">
-            Manage owner/attorney/ops access for your firm workspace.
-          </p>
+        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+          <div className="mb-8 pb-6 border-b border-[#F7F6F2]">
+            <h2 className="text-xl font-light tracking-tight">Team & Governance</h2>
+            <p className="mt-2 text-sm text-[#716E68]">
+              Manage firm permissions and administrative access.
+            </p>
+          </div>
 
-          <div className="mt-4 table-shell">
+          <div className="table-shell">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#0D1117] text-[#94A3B8]">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 font-medium">Member</th>
-                  <th className="px-4 py-3 font-medium">Role</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Member</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Permission</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#F7F6F2]">
                 {(firmMembers ?? []).map((member) => (
-                  <tr key={member.id} className="border-t border-white/10">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span>{profileMap.get(member.user_id) ?? member.user_id}</span>
-                        {member.user_id === user.id ? (
-                          <span className="rounded-full border border-white/20 px-2 py-0.5 text-[10px] uppercase tracking-wide text-[#94A3B8]">
-                            You
+                  <tr key={member.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium text-[#2C2A26]">{profileMap.get(member.user_id) ?? member.user_id}</span>
+                        {member.user_id === user.id && (
+                          <span className="px-2 py-0.5 bg-[#EFECE5] text-[#A19D94] text-[9px] uppercase tracking-widest font-bold rounded-full">
+                            Personal
                           </span>
-                        ) : null}
+                        )}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="status-badge capitalize">
+                    <td className="px-5 py-4">
+                      <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
                         {member.role}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       {isOwner ? (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex items-center gap-4">
                           <form action={updateMemberRoleAction} className="flex gap-2">
                             <input type="hidden" name="firm_id" value={primary.firm_id} />
                             <input type="hidden" name="membership_id" value={member.id} />
                             <select
                               name="new_role"
                               defaultValue={member.role}
-                              aria-label={`Role for ${profileMap.get(member.user_id) ?? member.user_id}`}
-                              className="rounded-md border border-white/15 bg-[#0D1117] px-2 py-1 text-xs outline-none ring-[#8B5CF6] focus:ring-2"
+                              className="px-2 py-1 bg-[#F7F6F2] border border-[#EBE8E0] text-[11px] rounded outline-none appearance-none cursor-pointer hover:bg-white transition-colors"
                             >
                               <option value="owner">Owner</option>
                               <option value="attorney">Attorney</option>
@@ -725,9 +752,9 @@ export default async function DashboardPage({
                             </select>
                             <button
                               type="submit"
-                              className="btn-xs btn-secondary"
+                              className="px-3 py-1 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded uppercase tracking-wider"
                             >
-                              Update
+                              Save
                             </button>
                           </form>
                           <form action={removeMemberAction}>
@@ -735,7 +762,7 @@ export default async function DashboardPage({
                             <input type="hidden" name="membership_id" value={member.id} />
                             <button
                               type="submit"
-                              className="rounded-md border border-red-400/40 bg-red-500/10 px-2 py-1 text-xs text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
+                              className="px-3 py-1 border border-[#FEE2E2] text-red-600 text-[10px] font-medium rounded hover:bg-red-50 transition-colors uppercase tracking-wider disabled:opacity-30 disabled:cursor-not-allowed"
                               disabled={member.user_id === user.id}
                             >
                               Remove
@@ -743,7 +770,7 @@ export default async function DashboardPage({
                           </form>
                         </div>
                       ) : (
-                        <span className="text-xs text-[#94A3B8]">-</span>
+                        <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">Read Only</span>
                       )}
                     </td>
                   </tr>
@@ -752,74 +779,69 @@ export default async function DashboardPage({
             </table>
           </div>
 
-          {isOwner ? (
-            <form action={inviteMemberAction} className="mt-5 grid gap-3 md:grid-cols-4">
-              <input type="hidden" name="firm_id" value={primary.firm_id} />
-              <label className="grid gap-1 md:col-span-2">
-                <span className="sr-only">Invite teammate email</span>
-                <input
-                  className="input-base"
-                  name="invite_email"
-                  type="email"
-                  placeholder="teammate@firm.com"
-                  required
-                />
-              </label>
-              <label className="grid gap-1">
-                <span className="sr-only">Invite teammate role</span>
-                <select
-                  className="input-base"
-                  name="invite_role"
-                  defaultValue="attorney"
+          {isOwner && (
+            <div className="mt-8 pt-8 border-t border-[#F7F6F2]">
+              <h3 className="text-sm font-medium mb-4 text-[#2C2A26]">Invite Counsel</h3>
+              <form action={inviteMemberAction} className="grid gap-3 md:grid-cols-4">
+                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                <label className="md:col-span-2">
+                  <input
+                    className="input-base"
+                    name="invite_email"
+                    type="email"
+                    placeholder="Enter email address..."
+                    required
+                  />
+                </label>
+                <label>
+                  <select
+                    className="input-base cursor-pointer"
+                    name="invite_role"
+                    defaultValue="attorney"
+                  >
+                    <option value="attorney">Attorney</option>
+                    <option value="ops">Operation</option>
+                  </select>
+                </label>
+                <button
+                  type="submit"
+                  className="btn-primary"
                 >
-                  <option value="attorney">Attorney</option>
-                  <option value="ops">Ops</option>
-                </select>
-              </label>
-              <button
-                type="submit"
-                className="btn-base btn-primary"
-              >
-                Invite member
-              </button>
-            </form>
-          ) : null}
+                  Send Invitation
+                </button>
+              </form>
+            </div>
+          )}
 
-          <div className="mt-6 table-shell">
+          <div className="mt-8 table-shell">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#0D1117] text-[#94A3B8]">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 font-medium">Invite email</th>
-                  <th className="px-4 py-3 font-medium">Role</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Expires</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Email</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Role</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Expires</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#F7F6F2]">
                 {(invitations ?? []).map((invite) => (
-                  <tr key={invite.id} className="border-t border-white/10">
-                    <td className="px-4 py-3">{invite.email}</td>
-                    <td className="px-4 py-3">
-                      <span className="status-badge capitalize">
+                  <tr key={invite.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                    <td className="px-5 py-4 text-[#2C2A26]">{invite.email}</td>
+                    <td className="px-5 py-4">
+                      <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
                         {invite.role}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={
-                          invite.status === "pending"
-                            ? "rounded-full border border-amber-300/40 bg-amber-500/15 px-2.5 py-1 text-xs capitalize text-amber-200"
-                            : "status-badge capitalize"
-                        }
-                      >
+                    <td className="px-5 py-4 text-[#A19D94]">
+                      <span className={invite.status === "pending" ? "text-[#B79455] font-medium" : ""}>
                         {invite.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4 text-[#A19D94] text-xs">
                       {new Date(invite.expires_at).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       {isOwner && invite.status === "pending" ? (
                         <div className="flex gap-2">
                           <form action={resendInviteAction}>
@@ -827,7 +849,7 @@ export default async function DashboardPage({
                             <input type="hidden" name="invitation_id" value={invite.id} />
                             <button
                               type="submit"
-                              className="rounded-md border border-white/20 bg-[#161B22] px-3 py-1.5 text-xs"
+                              className="px-3 py-1 bg-[#EFECE5] text-[#716E68] text-[10px] font-medium rounded hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider"
                             >
                               Resend
                             </button>
@@ -837,321 +859,44 @@ export default async function DashboardPage({
                             <input type="hidden" name="invitation_id" value={invite.id} />
                             <button
                               type="submit"
-                              className="rounded-md border border-red-400/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-200"
+                              className="px-3 py-1 border border-[#FEE2E2] text-red-600 text-[10px] font-medium rounded hover:bg-red-50 transition-colors uppercase tracking-wider"
                             >
                               Revoke
                             </button>
                           </form>
                         </div>
                       ) : (
-                        <span className="text-xs text-[#94A3B8]">-</span>
+                        <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
                       )}
                     </td>
                   </tr>
                 ))}
-                {!invitations?.length ? (
-                  <tr className="border-t border-white/10">
-                    <td className="px-4 py-6 text-sm text-[#94A3B8]" colSpan={5}>
-                      No invitations yet. Invite your first teammate above.
+                {!invitations?.length && (
+                  <tr>
+                    <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
+                      No active invitations
                     </td>
                   </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-4">
-            <Link className="text-sm text-[#8B5CF6] hover:underline" href="/invite">
-              Open my invitation inbox
-            </Link>
-          </div>
-        </section>
-
-        <section className="mt-6 glass-card p-6 reveal-up">
-          <h2 className="text-xl font-medium">Manual prospect ingestion</h2>
-          <p className="mt-2 text-sm text-[#94A3B8]">
-            Add one prospect at a time. Dedupe runs on firm + domain/email before insert.
-          </p>
-
-          <form action="/api/prospects/ingest" method="post" className="mt-4 grid gap-3 md:grid-cols-2">
-            <input type="hidden" name="firm_id" value={primary.firm_id} />
-            <label className="grid gap-1">
-              <span className="sr-only">Company name</span>
-              <input
-                className="input-base"
-                name="company_name"
-                placeholder="Company name"
-                required
-                type="text"
-              />
-            </label>
-            <label className="grid gap-1">
-              <span className="sr-only">Company domain</span>
-              <input
-                className="input-base"
-                name="domain"
-                placeholder="company.com"
-                type="text"
-              />
-            </label>
-            <label className="grid gap-1">
-              <span className="sr-only">Primary contact name</span>
-              <input
-                className="input-base"
-                name="primary_contact_name"
-                placeholder="Primary contact name"
-                type="text"
-              />
-            </label>
-            <label className="grid gap-1">
-              <span className="sr-only">Primary contact email</span>
-              <input
-                className="input-base"
-                name="primary_contact_email"
-                placeholder="contact@company.com"
-                type="email"
-              />
-            </label>
-            <label className="grid gap-1">
-              <span className="sr-only">Primary contact title</span>
-              <input
-                className="input-base"
-                name="primary_contact_title"
-                placeholder="GC / COO / Founder"
-                type="text"
-              />
-            </label>
-            <label className="grid gap-1">
-              <span className="sr-only">LinkedIn URL</span>
-              <input
-                className="input-base"
-                name="linkedin_url"
-                placeholder="https://linkedin.com/in/..."
-                type="url"
-              />
-            </label>
-            <button
-              className="btn-base btn-primary md:col-span-2"
-              type="submit"
-            >
-              Add prospect
-            </button>
-          </form>
-        </section>
-
-        <section className="mt-6 glass-card p-6 reveal-up">
-          <h2 className="text-xl font-medium">CouncilFlow Intelligence (Exa + Vibe)</h2>
-          <p className="mt-2 text-sm text-[#94A3B8]">
-            Proactive market discovery with Exa neural search and high-fidelity B2B enrichment with Vibe.
-          </p>
-
-          <form method="get" className="mt-4 grid gap-3 rounded-xl border border-white/10 bg-[#0D1117] p-4 md:grid-cols-4">
-            <label className="grid gap-1">
-              <span className="sr-only">Search prospects</span>
-              <input
-                name="q"
-                defaultValue={searchQuery}
-                placeholder="Search company or domain"
-                className="input-base text-sm"
-              />
-            </label>
-            <label className="grid gap-1">
-              <span className="sr-only">Prospect status filter</span>
-              <select
-                name="status"
-                defaultValue={statusFilter}
-                className="input-base text-sm"
-              >
-                <option value="all">All statuses</option>
-                <option value="new">New</option>
-                <option value="enriched">Enriched</option>
-                <option value="qualified">Qualified</option>
-                <option value="disqualified">Disqualified</option>
-                <option value="archived">Archived</option>
-              </select>
-            </label>
-            <label className="grid gap-1">
-              <span className="sr-only">Minimum fit score</span>
-              <input
-                type="number"
-                min={0}
-                max={100}
-                step={1}
-                name="min_score"
-                defaultValue={hasMinScore ? String(minScore) : ""}
-                placeholder="Min score"
-                className="input-base text-sm"
-              />
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                className="rounded-md border border-cyan-300/40 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200"
-              >
-                Apply filters
-              </button>
-              <Link
-                href="/dashboard"
-                className="btn-base btn-ghost text-[#CBD5E1]"
-              >
-                Reset
-              </Link>
-            </div>
-          </form>
-
-          <div className="mt-4 table-shell">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-[#0D1117] text-[#94A3B8]">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Company</th>
-                  <th className="px-4 py-3 font-medium">Domain</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Fit Score</th>
-                  <th className="px-4 py-3 font-medium">Top reasons</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(prospects ?? []).map((prospect) => (
-                  <tr key={prospect.id} className="border-t border-white/10">
-                    <td className="px-4 py-3">{prospect.company_name}</td>
-                    <td className="px-4 py-3 text-[#CBD5E1]">{prospect.domain ?? "-"}</td>
-                    <td className="px-4 py-3">
-                      <span className="status-badge capitalize">
-                        {prospect.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {prospect.fit_score != null ? (
-                        <div className="flex flex-col items-start gap-1">
-                          <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
-                            prospect.fit_score >= 80 ? "border-emerald-300/30 bg-emerald-500/15 text-emerald-200" :
-                            prospect.fit_score >= 50 ? "border-blue-300/30 bg-blue-500/15 text-blue-200" :
-                            prospect.fit_score <= 30 ? "border-red-400/30 bg-red-500/15 text-red-200" :
-                            "border-white/20 bg-white/5 text-white/70"
-                          }`}>
-                            {prospect.fit_score}
-                          </span>
-                          {prospect.fit_score <= 30 && Array.isArray(prospect.score_explanation) && prospect.score_explanation.some((e: any) => ["layoff_signal", "bankruptcy_signal", "legal_risk_signal"].includes(e.signal_type)) && (
-                            <span className="text-[10px] uppercase tracking-tighter text-red-400 font-bold">🚩 Risk Detected</span>
-                          )}
-                        </div>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-[#CBD5E1]">
-                      {Array.isArray(prospect.score_explanation) && prospect.score_explanation.length ? (
-                        <div className="space-y-1.5">
-                          {prospect.score_explanation
-                            .slice(0, 3)
-                            .map((item: any, index: number) => {
-                              const isPositive = (item.contribution ?? 0) > 0;
-                              const isRedFlag = ["layoff_signal", "bankruptcy_signal", "legal_risk_signal"].includes(item.signal_type);
-                              
-                              return (
-                                <div key={`${prospect.id}-reason-${index}`} className="flex items-start gap-2">
-                                  <span className={`mt-0.5 whitespace-nowrap font-mono text-[10px] font-bold ${
-                                    isRedFlag ? "text-red-400" :
-                                    isPositive ? "text-emerald-400" : "text-amber-400"
-                                  }`}>
-                                    {isPositive ? "+" : ""}{Math.round(item.contribution)}
-                                  </span>
-                                  <p className={isRedFlag ? "text-red-200/80 italic" : ""}>
-                                    {item.reason ?? "Signal detected"}
-                                  </p>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      ) : (
-                        <span className="text-[#94A3B8]">No reasons yet</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
-                        <form action="/api/research/runs" method="post">
-                          <input type="hidden" name="firm_id" value={primary.firm_id} />
-                          <input type="hidden" name="prospect_id" value={prospect.id} />
-                          <input type="hidden" name="limit" value="1" />
-                          <button
-                            className="rounded-md border border-[#8B5CF6]/40 bg-[#8B5CF6]/10 px-3 py-1.5 text-xs font-semibold text-[#A78BFA] transition-colors hover:bg-[#8B5CF6]/20"
-                            type="submit"
-                          >
-                            Run Intelligence
-                          </button>
-                        </form>
-                        <div className="flex opacity-60 transition-opacity hover:opacity-100">
-                          <form action="/api/prospects/enrich/exa" method="post">
-                            <input type="hidden" name="prospect_id" value={prospect.id} />
-                            <input type="hidden" name="mode" value="search" />
-                            <button
-                              className="rounded-l-md border border-r-0 border-white/10 bg-white/5 px-2 py-1.5 text-[10px] text-white/70 hover:bg-white/10"
-                              type="submit" title="Exa Search"
-                            >
-                              Search
-                            </button>
-                          </form>
-                          <form action="/api/prospects/enrich/exa" method="post">
-                            <input type="hidden" name="prospect_id" value={prospect.id} />
-                            <input type="hidden" name="mode" value="contents" />
-                            <button
-                              className="border-y border-white/10 bg-white/5 px-2 py-1.5 text-[10px] text-white/70 hover:bg-white/10"
-                              type="submit" title="Exa Scrape"
-                            >
-                              Scrape
-                            </button>
-                          </form>
-                          <form action="/api/prospects/enrich/vibe" method="post">
-                            <input type="hidden" name="prospect_id" value={prospect.id} />
-                            <button
-                              className="rounded-r-md border border-l-0 border-white/10 bg-white/5 px-2 py-1.5 text-[10px] text-white/70 hover:bg-white/10"
-                              type="submit" title="Vibe Enrich"
-                            >
-                              Vibe
-                            </button>
-                          </form>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {!prospects?.length ? (
-                  <tr className="border-t border-white/10">
-                    <td className="px-4 py-12 text-center" colSpan={6}>
-                      <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="rounded-full bg-white/5 p-3">
-                          <svg className="h-6 w-6 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                        </div>
-                        <p className="text-sm font-medium text-[#CBD5E1]">No prospects found</p>
-                        <p className="text-xs text-[#94A3B8]">Use the manual ingestion form above to add your first target company.</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : null}
+                )}
               </tbody>
             </table>
           </div>
         </section>
 
-        <section className="mt-6 glass-card p-6 reveal-up">
-          <h2 className="text-xl font-medium">Enrichment Runs (Recent)</h2>
-          <p className="mt-2 text-sm text-[#94A3B8]">
-            Retry failed provider runs directly from this queue.
-          </p>
-          <div className="mt-4 table-shell">
+        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+          <h2 className="text-xl font-light tracking-tight mb-8">Enrichment Status Queue</h2>
+          <div className="table-shell">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#0D1117] text-[#94A3B8]">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 font-medium">Prospect</th>
-                  <th className="px-4 py-3 font-medium">Provider</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Error</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Prospect</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Provider</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Telemetry</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#F7F6F2]">
                 {(enrichmentRuns ?? []).map((run) => {
                   const actionRoute =
                     run.provider === "tavily"
@@ -1165,24 +910,24 @@ export default async function DashboardPage({
                             : "";
 
                   return (
-                    <tr key={run.id} className="border-t border-white/10">
-                      <td className="px-4 py-3">
+                    <tr key={run.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                      <td className="px-5 py-4 text-[#2C2A26]">
                         {run.prospect_id ? (enrichmentProspectMap.get(run.prospect_id) ?? run.prospect_id) : "-"}
                       </td>
-                      <td className="px-4 py-3 capitalize">{run.provider}</td>
-                      <td className="px-4 py-3">
-                        <span className="status-badge capitalize">
+                      <td className="px-5 py-4 capitalize text-[#716E68] text-xs font-medium">{run.provider}</td>
+                      <td className="px-5 py-4">
+                        <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
                           {run.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-[#CBD5E1]">
+                      <td className="px-5 py-4 text-[10px] text-[#A19D94] max-w-xs">
                         {run.error_message ? (
-                          run.error_message.includes("429") ? "API Rate limit reached. The system will retry shortly." :
-                          run.error_message.includes("Timeout") ? "Request timed out during deep extraction." :
-                          run.error_message.slice(0, 140)
-                        ) : "-"}
+                          run.error_message.includes("429") ? "Provider Rate Limit" :
+                          run.error_message.includes("Timeout") ? "Extraction Timeout" :
+                          run.error_message.slice(0, 100)
+                        ) : "Nominal"}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-4">
                         {run.status === "failed" && run.prospect_id && actionRoute ? (
                           <form action={actionRoute} method="post">
                             <input type="hidden" name="firm_id" value={primary.firm_id} />
@@ -1191,44 +936,44 @@ export default async function DashboardPage({
                             {run.provider === "exa_contents" && <input type="hidden" name="mode" value="contents" />}
                             <button
                               type="submit"
-                              className="rounded-md border border-amber-300/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200"
+                              className="px-3 py-1 bg-[#EFECE5] text-[#716E68] text-[10px] font-medium rounded hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider"
                             >
-                              Retry provider
+                              Retry
                             </button>
                           </form>
                         ) : (
-                          <span className="text-xs text-[#94A3B8]">-</span>
+                          <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
                         )}
                       </td>
                     </tr>
                   );
                 })}
-                {!enrichmentRuns?.length ? (
-                  <tr className="border-t border-white/10">
-                    <td className="px-4 py-6 text-sm text-[#94A3B8]" colSpan={5}>
-                      No enrichment runs yet.
+                {!enrichmentRuns?.length && (
+                  <tr>
+                    <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
+                      No active enrichment tasks
                     </td>
                   </tr>
-                ) : null}
+                )}
               </tbody>
             </table>
           </div>
         </section>
 
-        <section className="mt-6 glass-card p-6 reveal-up">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-6 mb-8">
             <div>
-              <h2 className="text-xl font-medium">Reporting Digest Status</h2>
-              <p className="mt-2 text-sm text-[#94A3B8]">
-                Weekly digest generation and delivery activity for your firm.
+              <h2 className="text-xl font-light tracking-tight">Reporting Digest Health</h2>
+              <p className="mt-2 text-sm text-[#716E68]">
+                Weekly orchestration and delivery telemetry for firm-wide insights.
               </p>
             </div>
             <form action="/api/reporting/schedule/weekly" method="post">
               <button
                 type="submit"
-                className="rounded-md border border-indigo-300/40 bg-indigo-500/10 px-3 py-2 text-xs text-indigo-200"
+                className="btn-primary"
               >
-                Run reporting now
+                Trigger Outbound
               </button>
             </form>
           </div>
@@ -1236,275 +981,209 @@ export default async function DashboardPage({
           <div
             className={
               reportingObservability.degraded
-                ? "mt-4 rounded-lg border border-amber-300/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
-                : "mt-4 rounded-lg border border-emerald-300/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100"
+                ? "mb-8 rounded border border-red-100 bg-red-50/50 px-5 py-4 text-xs text-red-700"
+                : "mb-8 rounded border border-[#EFECE5] bg-[#FDFCFB] px-5 py-4 text-xs text-[#6B705C]"
             }
           >
-            <p className="text-xs uppercase tracking-[0.16em]">
-              Reporting health
+            <p className="uppercase tracking-widest font-bold mb-1">
+              System Health: {reportingObservability.degraded ? "Issues Detected" : "Nominal"}
             </p>
-            <p className="mt-1">
+            <p className="text-[#716E68]">
               {reportingObservability.degraded
-                ? "Degraded: failed deliveries detected in the latest run or run status is failed."
-                : "Healthy: latest reporting run completed without delivery failures."}
+                ? "Delivery failures detected in recent cycles. Manual verification recommended."
+                : "All scheduled reports delivered successfully to firm recipients."}
             </p>
-            <p className="mt-1 text-xs text-[#CBD5E1]">{reportingObservability.actionHint}</p>
+            <p className="mt-2 italic font-medium">{reportingObservability.actionHint}</p>
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-4">
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Recent runs</p>
-              <p className="mt-2 text-2xl font-semibold">{reportingRuns?.length ?? 0}</p>
-            </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Failed deliveries (last run)</p>
-              <p
-                className={
-                  reportingObservability.failedCount > 0
-                    ? "mt-2 text-2xl font-semibold text-amber-300"
-                    : "mt-2 text-2xl font-semibold"
-                }
-              >
+          <div className="grid gap-4 md:grid-cols-4 mb-8">
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Total Cycles</p>
+              <p className="text-xl font-light tracking-tight text-[#2C2A26]">{reportingRuns?.length ?? 0}</p>
+            </div>
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Failed (Last)</p>
+              <p className={`text-xl font-light tracking-tight ${reportingObservability.failedCount > 0 ? "text-red-600" : "text-[#2C2A26]"}`}>
                 {reportingObservability.failedCount}
               </p>
-            </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Sent deliveries (last run)</p>
-              <p className="mt-2 text-2xl font-semibold">{reportingObservability.sentCount}</p>
-            </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Last digest run</p>
-              <p className="mt-2 text-sm font-medium text-[#CBD5E1]">
+            </div>
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Delivered (Last)</p>
+              <p className="text-xl font-light tracking-tight text-[#2C2A26]">{reportingObservability.sentCount}</p>
+            </div>
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Last Run</p>
+              <p className="text-[11px] font-medium text-[#716E68]">
                 {reportingObservability.lastRunAt
-                  ? new Date(reportingObservability.lastRunAt).toLocaleString()
-                  : "No reporting runs yet"}
+                  ? new Date(reportingObservability.lastRunAt).toLocaleDateString()
+                  : "N/A"}
               </p>
-            </article>
+            </div>
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Top error codes (last run)</p>
-              <div className="mt-2 space-y-1 text-sm text-[#CBD5E1]">
-                {reportingObservability.topErrorCodes.length ? (
-                  reportingObservability.topErrorCodes.map((item) => (
-                    <p key={`reporting-error-${item.code}`}>
-                      {item.code}: {item.count}
-                    </p>
-                  ))
-                ) : (
-                  <p className="text-[#94A3B8]">No delivery error codes in the latest run.</p>
-                )}
-              </div>
-            </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Retries exhausted (last run)</p>
-              <p
-                className={
-                  reportingObservability.maxAttemptsReachedCount > 0
-                    ? "mt-2 text-2xl font-semibold text-amber-300"
-                    : "mt-2 text-2xl font-semibold"
-                }
-              >
-                {reportingObservability.maxAttemptsReachedCount}
-              </p>
-              <p className="mt-1 text-xs text-[#94A3B8]">
-                Count of failed deliveries that reached 3 attempts.
-              </p>
-            </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Config failures (last run)</p>
-              <p
-                className={
-                  reportingObservability.configFailureCount > 0
-                    ? "mt-2 text-2xl font-semibold text-amber-300"
-                    : "mt-2 text-2xl font-semibold"
-                }
-              >
-                {reportingObservability.configFailureCount}
-              </p>
-              <p className="mt-1 text-xs text-[#94A3B8]">
-                Missing recipients or resend sender settings.
-              </p>
-            </article>
-          </div>
-
-          <div className="mt-4 table-shell">
+          <div className="table-shell">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#0D1117] text-[#94A3B8]">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 font-medium">Week</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Summary</th>
-                  <th className="px-4 py-3 font-medium">Error</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Reporting Window</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Intelligence Summary</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#F7F6F2]">
                 {(reportingRuns ?? []).map((run) => (
-                  <tr key={`reporting-run-${run.id}`} className="border-t border-white/10">
-                    <td className="px-4 py-3 text-xs text-[#CBD5E1]">
-                      {run.week_start} to {run.week_end}
+                  <tr key={`reporting-run-${run.id}`} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                    <td className="px-5 py-4 text-xs font-medium text-[#2C2A26]">
+                      {run.week_start} — {run.week_end}
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="status-badge capitalize">{run.status}</span>
+                    <td className="px-5 py-4">
+                      <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">{run.status}</span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#CBD5E1]">
-                      {run.summary_title ?? "-"}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-[#CBD5E1]">
-                      {run.error_message ? run.error_message.slice(0, 140) : "-"}
+                    <td className="px-5 py-4 text-xs text-[#716E68]">
+                      {run.summary_title ?? "Operational report generated"}
                     </td>
                   </tr>
                 ))}
-                {!reportingRuns?.length ? (
-                  <tr className="border-t border-white/10">
-                    <td className="px-4 py-6 text-sm text-[#94A3B8]" colSpan={4}>
-                      No reporting runs yet.
-                    </td>
-                  </tr>
-                ) : null}
               </tbody>
             </table>
           </div>
         </section>
 
-        <section className="mt-6 glass-card p-6 reveal-up">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-6 mb-8">
             <div>
-              <h2 className="text-xl font-medium">Calendar-Linked Meetings</h2>
-              <p className="mt-2 text-sm text-[#94A3B8]">
-                Last 30 days of meeting events synced to calendar.
+              <h2 className="text-xl font-light tracking-tight">Calendar Synchronization</h2>
+              <p className="mt-2 text-sm text-[#716E68]">
+                Recent engagement events identified via connected workspace accounts.
               </p>
             </div>
             <Link
               href="/pipeline"
-              className="rounded-md border border-indigo-300/40 bg-indigo-500/10 px-3 py-2 text-xs text-indigo-200"
+              className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[10px] font-medium rounded hover:text-[#2C2A26] hover:bg-[#FDFCFB] transition-all uppercase tracking-widest flex items-center"
             >
-              Open pipeline
+              Open Pipeline
             </Link>
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Meeting links (30d)</p>
-              <p className="mt-2 text-2xl font-semibold">{recentCalendarEvents?.length ?? 0}</p>
-            </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">With video URL</p>
-              <p className="mt-2 text-2xl font-semibold">
+          <div className="grid gap-4 md:grid-cols-3 mb-8">
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Synced Events (30d)</p>
+              <p className="text-xl font-light tracking-tight text-[#2C2A26]">{recentCalendarEvents?.length ?? 0}</p>
+            </div>
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Video Sessions</p>
+              <p className="text-xl font-light tracking-tight text-[#2C2A26]">
                 {(recentCalendarEvents ?? []).filter((event) => Boolean(event.meeting_url)).length}
               </p>
-            </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Cancelled</p>
-              <p className="mt-2 text-2xl font-semibold">
+            </div>
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Cancellations</p>
+              <p className="text-xl font-light tracking-tight text-[#2C2A26]">
                 {(recentCalendarEvents ?? []).filter((event) => event.status === "cancelled").length}
               </p>
-            </article>
+            </div>
           </div>
 
-          <div className="mt-4 table-shell">
+          <div className="table-shell">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#0D1117] text-[#94A3B8]">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 font-medium">Prospect</th>
-                  <th className="px-4 py-3 font-medium">When</th>
-                  <th className="px-4 py-3 font-medium">Provider</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Link</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Prospect</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Schedule</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Access</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#F7F6F2]">
                 {recentMeetingLinks.map((event) => (
-                  <tr key={`calendar-linked-${event.id}`} className="border-t border-white/10">
-                    <td className="px-4 py-3">
+                  <tr key={`calendar-linked-${event.id}`} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                    <td className="px-5 py-4 font-medium text-[#2C2A26]">
                       {calendarProspectMap.get(event.prospect_id) ?? event.prospect_id}
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#CBD5E1]">
+                    <td className="px-5 py-4 text-xs text-[#716E68]">
                       {new Date(event.starts_at).toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 capitalize">{event.provider}</td>
-                    <td className="px-4 py-3">
-                      <span className="status-badge capitalize">{event.status}</span>
+                    <td className="px-5 py-4">
+                      <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">{event.status}</span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       {event.meeting_url ? (
                         <a
-                          className="rounded-md border border-indigo-300/40 bg-indigo-500/10 px-2.5 py-1 text-xs text-indigo-200"
+                          className="px-3 py-1 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded uppercase tracking-wider block text-center"
                           href={event.meeting_url}
                           target="_blank"
                           rel="noreferrer"
                         >
-                          Open
+                          Join
                         </a>
                       ) : (
-                        <span className="text-xs text-[#94A3B8]">-</span>
+                        <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
                       )}
                     </td>
                   </tr>
                 ))}
-                {!recentMeetingLinks.length ? (
-                  <tr className="border-t border-white/10">
-                    <td className="px-4 py-6 text-sm text-[#94A3B8]" colSpan={5}>
-                      No calendar-linked meetings in the last 30 days.
+                {!recentMeetingLinks.length && (
+                  <tr>
+                    <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
+                      No synced engagements detected
                     </td>
                   </tr>
-                ) : null}
+                )}
               </tbody>
             </table>
           </div>
         </section>
 
-        <section className="mt-6 glass-card p-6 reveal-up">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-6 mb-8">
             <div>
-              <h2 className="text-xl font-medium">Research Orchestrator</h2>
-              <p className="mt-2 text-sm text-[#94A3B8]">
-                Run both providers across your current prospect set and retry failed jobs.
+              <h2 className="text-xl font-light tracking-tight">Research Orchestrator</h2>
+              <p className="mt-2 text-sm text-[#716E68]">
+                Orchestrate intelligence runs across the full prospect dataset.
               </p>
             </div>
             <form action="/api/research/runs" method="post">
               <input type="hidden" name="firm_id" value={primary.firm_id} />
               <button
                 type="submit"
-                className="btn-base btn-primary"
+                className="btn-primary"
               >
-                Run research now
+                Trigger All
               </button>
             </form>
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Scheduled runs</p>
-              <p className="mt-2 text-2xl font-semibold">{scheduledRuns.length}</p>
-            </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Scheduled failures</p>
-              <p className={scheduledFailedCount > 0 ? "mt-2 text-2xl font-semibold text-amber-300" : "mt-2 text-2xl font-semibold"}>
+          <div className="grid gap-4 md:grid-cols-3 mb-8">
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Active Runs</p>
+              <p className="text-xl font-light tracking-tight text-[#2C2A26]">{scheduledRuns.length}</p>
+            </div>
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Run Failures</p>
+              <p className={`text-xl font-light tracking-tight ${scheduledFailedCount > 0 ? "text-red-600" : "text-[#2C2A26]"}`}>
                 {scheduledFailedCount}
               </p>
-            </article>
-            <article className="rounded-lg border border-white/10 bg-[#0D1117] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#94A3B8]">Last scheduled run</p>
-              <p className="mt-2 text-sm font-medium text-[#CBD5E1]">
-                {latestScheduledRun ? new Date(latestScheduledRun.created_at).toLocaleString() : "No scheduled runs yet"}
+            </div>
+            <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-2">Last Sync</p>
+              <p className="text-[11px] font-medium text-[#716E68]">
+                {latestScheduledRun ? new Date(latestScheduledRun.created_at).toLocaleDateString() : "N/A"}
               </p>
-            </article>
+            </div>
           </div>
 
-          <div className="mt-4 table-shell">
+          <div className="table-shell">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#0D1117] text-[#94A3B8]">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 font-medium">Run</th>
-                  <th className="px-4 py-3 font-medium">Trigger</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Summary</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Job ID</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Trigger</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Status</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Throughput</th>
+                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#F7F6F2]">
                 {(researchRuns ?? []).map((run) => {
                   const summary =
                     run.run_summary && typeof run.run_summary === "object"
@@ -1515,98 +1194,51 @@ export default async function DashboardPage({
                   const failedCount = Number(summary.provider_failure_count ?? 0);
 
                   return (
-                    <tr key={run.id} className="border-t border-white/10">
-                      <td className="px-4 py-3 text-xs text-[#CBD5E1]">{run.id.slice(0, 8)}</td>
-                      <td className="px-4 py-3 capitalize">
+                    <tr key={run.id} className="hover:bg-[#FDFCFB]/50 transition-colors">
+                      <td className="px-5 py-4 font-mono text-[10px] text-[#A19D94]">{run.id.slice(0, 8)}</td>
+                      <td className="px-5 py-4 capitalize text-xs text-[#716E68]">
                         {run.trigger_type}
                         {run.retry_count > 0 ? ` (${run.retry_count})` : ""}
                       </td>
-                      <td className="px-4 py-3">
-                        <span className="status-badge capitalize">
+                      <td className="px-5 py-4">
+                        <span className="status-badge capitalize bg-[#F7F6F2] text-[#716E68]">
                           {run.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-[#CBD5E1]">
-                        Prospects: {totalProspects} | Provider success: {successCount} | Provider fail:{" "}
-                        {failedCount}
-                        {run.error_message ? ` | ${run.error_message}` : ""}
+                      <td className="px-5 py-4 text-[10px] text-[#A19D94]">
+                        S: {successCount} | F: {failedCount} | T: {totalProspects}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-4">
                         {run.status === "failed" ? (
                           <form action="/api/research/runs" method="post">
                             <input type="hidden" name="firm_id" value={primary.firm_id} />
                             <input type="hidden" name="retry_run_id" value={run.id} />
                             <button
                               type="submit"
-                              className="rounded-md border border-amber-300/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200"
+                              className="px-3 py-1 bg-[#EFECE5] text-[#716E68] text-[10px] font-medium rounded hover:bg-[#D5D1C6] transition-colors uppercase tracking-wider"
                             >
-                              Retry failed
+                              Retry
                             </button>
                           </form>
                         ) : (
-                          <span className="text-xs text-[#94A3B8]">-</span>
+                          <span className="text-[10px] text-[#A19D94] uppercase tracking-widest">-</span>
                         )}
                       </td>
                     </tr>
                   );
                 })}
-                {!researchRuns?.length ? (
-                  <tr className="border-t border-white/10">
-                    <td className="px-4 py-6 text-sm text-[#94A3B8]" colSpan={5}>
-                      No research runs yet. Start your first orchestrated run.
+                {!researchRuns?.length && (
+                  <tr>
+                    <td className="px-5 py-12 text-center text-[#A19D94] text-xs uppercase tracking-widest" colSpan={5}>
+                      No historical runs detected
                     </td>
                   </tr>
-                ) : null}
+                )}
               </tbody>
             </table>
           </div>
-
-          {scheduledFailedCount > 0 ? (
-            <div className="mt-4 overflow-hidden rounded-xl border border-amber-300/30 bg-amber-500/10">
-              <div className="px-4 py-3 text-sm font-medium text-amber-200">
-                Scheduled run failures need attention
-              </div>
-              <table className="w-full text-left text-sm">
-                <thead className="bg-[#0D1117] text-[#94A3B8]">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Run</th>
-                    <th className="px-4 py-3 font-medium">When</th>
-                    <th className="px-4 py-3 font-medium">Error</th>
-                    <th className="px-4 py-3 font-medium">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {scheduledRuns
-                    .filter((run) => run.status === "failed")
-                    .slice(0, 5)
-                    .map((run) => (
-                      <tr key={`scheduled-failure-${run.id}`} className="border-t border-white/10">
-                        <td className="px-4 py-3 text-xs text-[#CBD5E1]">{run.id.slice(0, 8)}</td>
-                        <td className="px-4 py-3 text-xs text-[#CBD5E1]">
-                          {new Date(run.created_at).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-[#CBD5E1]">
-                          {run.error_message ?? "Unknown scheduler failure"}
-                        </td>
-                        <td className="px-4 py-3">
-                          <form action="/api/research/runs" method="post">
-                            <input type="hidden" name="firm_id" value={primary.firm_id} />
-                            <input type="hidden" name="retry_run_id" value={run.id} />
-                            <button
-                              type="submit"
-                              className="rounded-md border border-amber-300/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200"
-                            >
-                              Retry as manual
-                            </button>
-                          </form>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          ) : null}
         </section>
+      </div>
     </AppShell>
   );
 }
