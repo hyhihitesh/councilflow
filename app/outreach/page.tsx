@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { getFirmAccessState } from "@/lib/billing/entitlements";
 import { summarizeOutreachEvents } from "@/lib/outreach/analytics";
 import { evaluateOutreachCompliance } from "@/lib/outreach/compliance";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 type SearchParams = {
   error?: string;
@@ -18,47 +17,28 @@ export default async function OutreachPage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  const supabase = await createClient();
+  const { supabase, user, firmId, firmName } = await requireAuth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const firm = firmName ? { name: firmName } : null;
+  const accessState = await getFirmAccessState({ supabase, firmId });
 
-  if (!user) {
-    redirect("/auth/sign-in");
-  }
-
-  const { data: memberships } = await supabase
-    .from("firm_memberships")
-    .select("firm_id, role, firms(name)")
-    .eq("user_id", user.id)
-    .limit(1);
-
-  if (!memberships || memberships.length === 0) {
-    redirect("/onboarding");
-  }
-
-  const primary = memberships[0];
-  const firm = Array.isArray(primary.firms) ? primary.firms[0] : primary.firms;
-  const accessState = await getFirmAccessState({
-    supabase,
-    firmId: primary.firm_id,
-  });
-
-  const { data: prospects } = await supabase
-    .from("prospects")
-    .select("id, company_name, domain, status, fit_score")
-    .eq("firm_id", primary.firm_id)
-    .order("fit_score", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false })
-    .limit(10);
+  // Parallel fetch of independent data
+  const [{ data: prospects }] = await Promise.all([
+    supabase
+      .from("prospects")
+      .select("id, company_name, domain, status, fit_score")
+      .eq("firm_id", firmId)
+      .order("fit_score", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(10),
+  ]);
 
   const prospectIds = (prospects ?? []).map((prospect) => prospect.id);
   const { data: drafts } = prospectIds.length
       ? await supabase
         .from("outreach_drafts")
         .select("id, prospect_id, variant, status, subject, body, voice_score, version, sent_at, created_at")
-        .eq("firm_id", primary.firm_id)
+        .eq("firm_id", firmId)
         .in("prospect_id", prospectIds)
         .order("version", { ascending: false })
         .order("created_at", { ascending: false })
@@ -66,7 +46,7 @@ export default async function OutreachPage({
   const { data: events } = await supabase
     .from("outreach_events")
     .select("id, action_type, prospect_id, created_at, metadata")
-    .eq("firm_id", primary.firm_id)
+    .eq("firm_id", firmId)
     .order("created_at", { ascending: false })
     .limit(40);
 
@@ -206,7 +186,7 @@ export default async function OutreachPage({
                   </div>
                   <div className="flex gap-2">
                     <form action="/api/outreach/drafts/generate" method="post">
-                      <input type="hidden" name="firm_id" value={primary.firm_id} />
+                      <input type="hidden" name="firm_id" value={firmId} />
                       <input type="hidden" name="prospect_id" value={prospect.id} />
                       <button
                         type="submit"
@@ -217,7 +197,7 @@ export default async function OutreachPage({
                     </form>
                     {latestVersion > 0 ? (
                       <form action="/api/outreach/drafts/generate" method="post">
-                        <input type="hidden" name="firm_id" value={primary.firm_id} />
+                        <input type="hidden" name="firm_id" value={firmId} />
                         <input type="hidden" name="prospect_id" value={prospect.id} />
                         <input type="hidden" name="regenerate" value="1" />
                         <button
@@ -285,7 +265,7 @@ export default async function OutreachPage({
 
                               <div className="flex flex-wrap gap-2 pt-2">
                                 <form action="/api/outreach/drafts/decision" method="post" className="flex-1">
-                                  <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                  <input type="hidden" name="firm_id" value={firmId} />
                                   <input type="hidden" name="draft_id" value={draft.id} />
                                   <input type="hidden" name="action" value="approve" />
                                   <button
@@ -296,7 +276,7 @@ export default async function OutreachPage({
                                   </button>
                                 </form>
                                 <form action="/api/outreach/drafts/decision" method="post" className="flex-1">
-                                  <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                  <input type="hidden" name="firm_id" value={firmId} />
                                   <input type="hidden" name="draft_id" value={draft.id} />
                                   <input type="hidden" name="action" value="skip" />
                                   <button
@@ -329,7 +309,7 @@ export default async function OutreachPage({
 
                             <form action="/api/outreach/drafts/decision" method="post" className="mt-4 pt-4 border-t border-dashed border-[#EBE8E0] space-y-3">
                               <p className="text-[10px] font-medium uppercase tracking-widest text-[#A19D94] mb-2">Direct Edit</p>
-                              <input type="hidden" name="firm_id" value={primary.firm_id} />
+                              <input type="hidden" name="firm_id" value={firmId} />
                               <input type="hidden" name="draft_id" value={draft.id} />
                               <input type="hidden" name="action" value="edit" />
                               <input

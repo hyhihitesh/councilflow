@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
 import {
   removeMemberAction,
@@ -14,8 +15,9 @@ import { getBillingPlanLabelByProductId } from "@/lib/billing/plans";
 import { getFirmAccessState } from "@/lib/billing/entitlements";
 import { summarizeReportingObservability } from "@/lib/reporting/health";
 import { AppShell } from "@/components/layout/app-shell";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { ZenToggle } from "@/components/dashboard/zen-toggle";
+import { Zap, ChevronRight, Users } from "lucide-react";
 
 type SearchParams = {
   error?: string;
@@ -44,99 +46,64 @@ export default async function DashboardPage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  const supabase = await createClient();
+  const { supabase, user, firmId, role, firmName } = await requireAuth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/auth/sign-in");
-  }
-
-  const { data: memberships, error: membershipsError } = await supabase
-    .from("firm_memberships")
-    .select("firm_id, role, firms(name)")
-    .eq("user_id", user.id);
-
-  if (membershipsError) {
-    redirect(
-      `/onboarding?error=${encodeURIComponent("Unable to load firm membership. Please retry or sign in again.")}`,
-    );
-  }
-
-  if (!memberships || memberships.length === 0) {
-    redirect("/onboarding");
-  }
-
-  const primary = memberships[0];
-  const firm = Array.isArray(primary.firms) ? primary.firms[0] : primary.firms;
-  const accessState = await getFirmAccessState({
-    supabase,
-    firmId: primary.firm_id,
-  });
-  const isOwner = primary.role === "owner";
+  const accessState = await getFirmAccessState({ supabase, firmId });
+  const isOwner = role === "owner";
   const searchQuery = params.q?.trim() ?? "";
   const statusFilter = params.status?.trim().toLowerCase() ?? "all";
   const minScore = Number(params.min_score ?? "");
   const hasMinScore = Number.isFinite(minScore) && minScore >= 0;
   const isZen = params.zen === "true";
+  const firm = firmName ? { name: firmName } : null;
 
-  const { data: firmMembers } = await supabase
-    .from("firm_memberships")
-    .select("id, user_id, role, created_at")
-    .eq("firm_id", primary.firm_id)
-    .order("created_at", { ascending: true });
-
-  const memberIds = (firmMembers ?? []).map((member) => member.user_id);
-  const { data: memberProfiles } = memberIds.length
-    ? await supabase
-        .from("profiles")
-        .select("id, display_name")
-        .in("id", memberIds)
-    : { data: [] };
-
-  const profileMap = new Map(
-    (memberProfiles ?? []).map((profile) => [profile.id, profile.display_name]),
-  );
-
-  const { data: invitations } = await supabase
-    .from("firm_invitations")
-    .select("id, email, role, status, invited_at, expires_at")
-    .eq("firm_id", primary.firm_id)
-    .order("invited_at", { ascending: false })
-    .limit(20);
-
+  // Build filtered prospects query based on search params
   let prospectsQuery = supabase
     .from("prospects")
     .select("id, company_name, domain, status, fit_score, score_explanation, created_at")
-    .eq("firm_id", primary.firm_id);
+    .eq("firm_id", firmId);
+  if (searchQuery) prospectsQuery = prospectsQuery.or(`company_name.ilike.%${searchQuery}%,domain.ilike.%${searchQuery}%`);
+  if (statusFilter && statusFilter !== "all") prospectsQuery = prospectsQuery.eq("status", statusFilter);
+  if (hasMinScore) prospectsQuery = prospectsQuery.gte("fit_score", minScore);
 
-  if (searchQuery) {
-    prospectsQuery = prospectsQuery.or(
-      `company_name.ilike.%${searchQuery}%,domain.ilike.%${searchQuery}%`,
-    );
-  }
+  // Parallel fetch: all independent queries in one round-trip
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 30);
 
-  if (statusFilter && statusFilter !== "all") {
-    prospectsQuery = prospectsQuery.eq("status", statusFilter);
-  }
+  const [
+    { data: firmMembers },
+    { data: invitations },
+    { data: prospects },
+    { data: researchRuns },
+  ] = await Promise.all([
+    supabase
+      .from("firm_memberships")
+      .select("id, user_id, role, created_at")
+      .eq("firm_id", firmId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("firm_invitations")
+      .select("id, email, role, status, invited_at, expires_at")
+      .eq("firm_id", firmId)
+      .order("invited_at", { ascending: false })
+      .limit(20),
+    prospectsQuery
+      .order("fit_score", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(25),
+    supabase
+      .from("research_runs")
+      .select("id, trigger_type, status, retry_count, run_summary, error_message, created_at")
+      .eq("firm_id", firmId)
+      .order("created_at", { ascending: false })
+      .limit(10),
+  ]);
 
-  if (hasMinScore) {
-    prospectsQuery = prospectsQuery.gte("fit_score", minScore);
-  }
-
-  const { data: prospects } = await prospectsQuery
-    .order("fit_score", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false })
-    .limit(25);
-
-  const { data: researchRuns } = await supabase
-    .from("research_runs")
-    .select("id, trigger_type, status, retry_count, run_summary, error_message, created_at")
-    .eq("firm_id", primary.firm_id)
-    .order("created_at", { ascending: false })
-    .limit(10);
+  const memberIds = (firmMembers ?? []).map((m) => m.user_id);
+  const { data: memberProfiles } = memberIds.length
+    ? await supabase.from("profiles").select("id, display_name").in("id", memberIds)
+    : { data: [] };
+  const profileMap = new Map((memberProfiles ?? []).map((p) => [p.id, p.display_name]));
 
   const scheduledRuns = (researchRuns ?? []).filter((run) => run.trigger_type === "scheduled");
   const scheduledFailedCount = scheduledRuns.filter((run) => run.status === "failed").length;
@@ -145,7 +112,7 @@ export default async function DashboardPage({
   const { data: reportingRuns } = await supabase
     .from("reporting_runs")
     .select("id, status, week_start, week_end, summary_title, error_message, created_at, completed_at")
-    .eq("firm_id", primary.firm_id)
+    .eq("firm_id", firmId)
     .order("created_at", { ascending: false })
     .limit(10);
 
@@ -156,7 +123,7 @@ export default async function DashboardPage({
         .select(
           "id, reporting_run_id, delivery_mode, recipient, status, error_message, created_at, attempted_at, attempt_count, last_error_code, last_error_message",
         )
-        .eq("firm_id", primary.firm_id)
+        .eq("firm_id", firmId)
         .in("reporting_run_id", reportingRunIds)
         .order("created_at", { ascending: false })
         .limit(20)
@@ -167,13 +134,10 @@ export default async function DashboardPage({
     deliveries: reportingDeliveries ?? [],
   });
 
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 30);
-
   const { data: recentCalendarEvents } = await supabase
     .from("calendar_events")
     .select("id, prospect_id, provider, status, title, starts_at, ends_at, meeting_url, created_at")
-    .eq("firm_id", primary.firm_id)
+    .eq("firm_id", firmId)
     .gte("starts_at", thirtyDaysAgo.toISOString())
     .order("starts_at", { ascending: false })
     .limit(50);
@@ -200,7 +164,7 @@ export default async function DashboardPage({
   const { data: enrichmentRuns } = await supabase
     .from("prospect_enrichment_runs")
     .select("id, prospect_id, provider, status, error_message, created_at, completed_at")
-    .eq("firm_id", primary.firm_id)
+    .eq("firm_id", firmId)
     .order("created_at", { ascending: false })
     .limit(12);
 
@@ -225,15 +189,15 @@ export default async function DashboardPage({
 
   const pendingInvites = (invitations ?? []).filter((invite) => invite.status === "pending").length;
   const ownerCount = (firmMembers ?? []).filter((member) => member.role === "owner").length;
-  const oauthProviders = Array.isArray(user.app_metadata?.providers)
-    ? (user.app_metadata.providers as string[])
+  const oauthProviders = Array.isArray((user as any).app_metadata?.providers)
+    ? ((user as any).app_metadata.providers as string[])
     : [];
   const hasGoogleAuth = oauthProviders.includes("google");
   const hasMicrosoftAuth = oauthProviders.includes("azure");
   const { data: billingSubscription } = await supabase
     .from("billing_subscriptions")
     .select("status, product_id, current_period_end, cancel_at_period_end, updated_at")
-    .eq("firm_id", primary.firm_id)
+    .eq("firm_id", firmId)
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -271,33 +235,33 @@ export default async function DashboardPage({
     supabase
       .from("outreach_events")
       .select("id", { count: "exact", head: true })
-      .eq("firm_id", primary.firm_id)
+      .eq("firm_id", firmId)
       .eq("action_type", "generated"),
     supabase
       .from("outreach_events")
       .select("id", { count: "exact", head: true })
-      .eq("firm_id", primary.firm_id)
+      .eq("firm_id", firmId)
       .eq("action_type", "regenerated"),
     supabase
       .from("outreach_events")
       .select("id", { count: "exact", head: true })
-      .eq("firm_id", primary.firm_id)
+      .eq("firm_id", firmId)
       .eq("action_type", "approved"),
     supabase
       .from("outreach_events")
       .select("id", { count: "exact", head: true })
-      .eq("firm_id", primary.firm_id)
+      .eq("firm_id", firmId)
       .eq("action_type", "sent"),
     supabase
       .from("follow_up_tasks")
       .select("id", { count: "exact", head: true })
-      .eq("firm_id", primary.firm_id)
+      .eq("firm_id", firmId)
       .eq("status", "pending")
       .lte("due_at", nowIso),
     supabase
       .from("content_drafts")
       .select("id", { count: "exact", head: true })
-      .eq("firm_id", primary.firm_id)
+      .eq("firm_id", firmId)
       .eq("status", "published")
       .gte("published_at", monthStart.toISOString()),
   ]);
@@ -307,7 +271,7 @@ export default async function DashboardPage({
       supabase
         .from("prospects")
         .select("id", { count: "exact", head: true })
-        .eq("firm_id", primary.firm_id)
+        .eq("firm_id", firmId)
         .eq("pipeline_stage", stage),
     ),
   );
@@ -339,14 +303,14 @@ export default async function DashboardPage({
     supabase
       .from("agent_runs")
       .select("id, run_type, status, created_at, completed_at")
-      .eq("firm_id", primary.firm_id)
+      .eq("firm_id", firmId)
       .gte("created_at", auditSinceIso)
       .order("created_at", { ascending: false })
       .limit(8),
     supabase
       .from("agent_tool_calls")
       .select("id, run_id, tool_name, status, duration_ms, created_at")
-      .eq("firm_id", primary.firm_id)
+      .eq("firm_id", firmId)
       .gte("created_at", auditSinceIso)
       .order("created_at", { ascending: false })
       .limit(12),
@@ -388,7 +352,7 @@ export default async function DashboardPage({
   return (
     <AppShell
       title={`Welcome${user.email ? `, ${user.email}` : ""}`}
-      description={`Firm: ${firm?.name ?? "Unknown"} | Role: ${primary.role}`}
+      description={`Firm: ${firm?.name ?? "Unknown"} | Role: ${role}`}
       userEmail={user.email}
       billingAccessState={accessState.ok ? accessState.accessState : "active"}
       billingAccessContext={
@@ -484,24 +448,33 @@ export default async function DashboardPage({
             <div className="mt-8 flex flex-wrap gap-3">
               {isOwner ? (
                 <>
-                  <Link
-                    href="/checkout?plan=starter"
-                    className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
-                  >
-                    Starter
-                  </Link>
-                  <Link
-                    href="/checkout?plan=pro"
-                    className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
-                  >
-                    Pro
-                  </Link>
-                  <Link
-                    href="/checkout?plan=premium"
-                    className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
-                  >
-                    Premium
-                  </Link>
+                  {!billingIsActive ? (
+                    <>
+                      <Link
+                        href="/checkout?plan=starter"
+                        className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
+                      >
+                        Starter
+                      </Link>
+                      <Link
+                        href="/checkout?plan=pro"
+                        className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
+                      >
+                        Pro
+                      </Link>
+                      <Link
+                        href="/checkout?plan=premium"
+                        className="px-4 py-2 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider"
+                      >
+                        Premium
+                      </Link>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-3 px-4 py-2 bg-emerald-50/50 border border-emerald-100 rounded text-emerald-800 text-[11px] font-medium uppercase tracking-wider">
+                      <Zap className="w-3.5 h-3.5" />
+                      Subscription active — Use portal for changes
+                    </div>
+                  )}
                 </>
               ) : null}
             </div>
@@ -576,24 +549,77 @@ export default async function DashboardPage({
               <p className="text-lg font-medium text-[#B79455]">{funnel.winRateFromSent}%</p>
             </article>
           </div>
+        </section>
 
-          <div className="mt-8 table-shell">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Pipeline Stage</th>
-                  <th className="px-5 py-4 font-medium uppercase tracking-widest text-[10px]">Active Prospects</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F7F6F2]">
-                {PIPELINE_STAGES.map((stage) => (
-                  <tr key={`stage-row-${stage}`} className="hover:bg-[#FDFCFB]/50 transition-colors">
-                    <td className="px-5 py-4 capitalize font-medium text-[#2C2A26]">{stage}</td>
-                    <td className="px-5 py-4 text-[#716E68]">{stageCounts[stage]}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <section className="mt-8 bg-white border border-[#EBE8E0] p-8 rounded-sm reveal-up shadow-sm">
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-light tracking-tight text-[#2C2A26]">Firm Intelligence Queue</h2>
+                <p className="mt-2 text-sm text-[#716E68]">
+                  High-fidelity prospects identified via automated research.
+                </p>
+              </div>
+              <Link href="/prospects" className="text-[10px] uppercase tracking-widest font-bold text-[#2C2A26] hover:opacity-70 transition-opacity border-b-2 border-[#2C2A26] pb-0.5">
+                View All
+              </Link>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {(prospects ?? []).map((prospect) => (
+              <div
+                key={prospect.id}
+                className="group flex flex-wrap items-center justify-between gap-4 rounded border border-[#F7F6F2] bg-[#FDFCFB] px-6 py-5 hover:border-[#D5D1C6] hover:bg-white transition-all duration-300 shadow-sm"
+              >
+                <div className="flex items-center gap-5">
+                  <div className="w-10 h-10 rounded-sm bg-[#2C2A26] text-[#F7F6F2] flex items-center justify-center text-xs font-bold uppercase tracking-tighter">
+                    {prospect.company_name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-[#2C2A26] group-hover:text-black transition-colors">
+                      {prospect.company_name}
+                    </h3>
+                    <p className="text-[11px] text-[#A19D94] uppercase tracking-wider mt-0.5">{prospect.domain}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-8">
+                  <div className="text-right">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-1">Fit Score</p>
+                    <span className="text-sm font-medium text-[#6B705C] bg-[#6B705C]/5 px-2 py-0.5 rounded">
+                      {prospect.fit_score ?? "???"}
+                    </span>
+                  </div>
+                  <div className="text-right min-w-[100px]">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#A19D94] mb-1">Status</p>
+                    <span className="status-badge bg-[#F7F6F2] text-[#716E68] text-[10px] uppercase tracking-widest font-bold">
+                      {prospect.status}
+                    </span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-[#D5D1C6] group-hover:text-[#2C2A26] transition-all transform group-hover:translate-x-1" />
+                </div>
+              </div>
+            ))}
+
+            {(!prospects || prospects.length === 0) && (
+              <div className="rounded border-2 border-dashed border-[#EBE8E0] bg-[#FDFCFB]/50 p-12 text-center animate-pulse-subtle">
+                <div className="max-w-md mx-auto">
+                  <Users className="w-10 h-10 text-[#D5D1C6] mx-auto mb-6 opacity-60" />
+                  <h3 className="text-lg font-light text-[#2C2A26] mb-3">Begin Your Intelligence Lifecycle</h3>
+                  <p className="text-sm text-[#716E68] leading-relaxed mb-8 font-light">
+                    Your firm's prospect queue is currently empty. Start by ingesting leads to activate the research engine and generate targeted outreach.
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <Link href="/prospects" className="w-full sm:w-auto px-6 py-3 bg-[#2C2A26] text-[#F7F6F2] text-[11px] font-medium rounded-sm hover:bg-[#4A4742] transition-colors shadow-lg uppercase tracking-widest">
+                      Ingest First Prospect
+                    </Link>
+                    <Link href="/outreach" className="w-full sm:w-auto px-6 py-3 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded-sm hover:bg-white hover:text-[#2C2A26] transition-all uppercase tracking-widest">
+                      Explore Writer
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -745,7 +771,7 @@ export default async function DashboardPage({
                           {isOwner ? (
                             <div className="flex items-center gap-4">
                               <form action={updateMemberRoleAction} className="flex gap-2">
-                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="firm_id" value={firmId} />
                                 <input type="hidden" name="membership_id" value={member.id} />
                                 <select
                                   name="new_role"
@@ -764,7 +790,7 @@ export default async function DashboardPage({
                                 </button>
                               </form>
                               <form action={removeMemberAction}>
-                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="firm_id" value={firmId} />
                                 <input type="hidden" name="membership_id" value={member.id} />
                                 <button
                                   type="submit"
@@ -789,7 +815,7 @@ export default async function DashboardPage({
                 <div className="mt-8 pt-8 border-t border-[#F7F6F2]">
                   <h3 className="text-sm font-medium mb-4 text-[#2C2A26]">Invite Counsel</h3>
                   <form action={inviteMemberAction} className="grid gap-3 md:grid-cols-4">
-                    <input type="hidden" name="firm_id" value={primary.firm_id} />
+                    <input type="hidden" name="firm_id" value={firmId} />
                     <label className="md:col-span-2">
                       <input
                         className="input-base"
@@ -851,7 +877,7 @@ export default async function DashboardPage({
                           {isOwner && invite.status === "pending" ? (
                             <div className="flex gap-2">
                               <form action={resendInviteAction}>
-                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="firm_id" value={firmId} />
                                 <input type="hidden" name="invitation_id" value={invite.id} />
                                 <button
                                   type="submit"
@@ -861,7 +887,7 @@ export default async function DashboardPage({
                                 </button>
                               </form>
                               <form action={revokeInviteAction}>
-                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="firm_id" value={firmId} />
                                 <input type="hidden" name="invitation_id" value={invite.id} />
                                 <button
                                   type="submit"
@@ -936,7 +962,7 @@ export default async function DashboardPage({
                           <td className="px-5 py-4">
                             {run.status === "failed" && run.prospect_id && actionRoute ? (
                               <form action={actionRoute} method="post">
-                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="firm_id" value={firmId} />
                                 <input type="hidden" name="prospect_id" value={run.prospect_id} />
                                 {run.provider === "exa_search" && <input type="hidden" name="mode" value="search" />}
                                 {run.provider === "exa_contents" && <input type="hidden" name="mode" value="contents" />}
@@ -1149,7 +1175,7 @@ export default async function DashboardPage({
                   </p>
                 </div>
                 <form action="/api/research/runs" method="post">
-                  <input type="hidden" name="firm_id" value={primary.firm_id} />
+                  <input type="hidden" name="firm_id" value={firmId} />
                   <button
                     type="submit"
                     className="btn-primary"
@@ -1217,7 +1243,7 @@ export default async function DashboardPage({
                           <td className="px-5 py-4">
                             {run.status === "failed" ? (
                               <form action="/api/research/runs" method="post">
-                                <input type="hidden" name="firm_id" value={primary.firm_id} />
+                                <input type="hidden" name="firm_id" value={firmId} />
                                 <input type="hidden" name="retry_run_id" value={run.id} />
                                 <button
                                   type="submit"

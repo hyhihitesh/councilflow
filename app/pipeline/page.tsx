@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { PipelineBoard } from "@/app/pipeline/pipeline-board";
 import { AppShell } from "@/components/layout/app-shell";
 import { getFirmAccessState } from "@/lib/billing/entitlements";
 import { buildThreadSummaryFromEvents } from "@/lib/pipeline/thread-summary";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 type SearchParams = {
   error?: string;
@@ -30,32 +29,10 @@ export default async function PipelinePage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  const supabase = await createClient();
+  const { supabase, user, firmId, firmName } = await requireAuth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/auth/sign-in");
-  }
-
-  const { data: memberships } = await supabase
-    .from("firm_memberships")
-    .select("firm_id, firms(name)")
-    .eq("user_id", user.id)
-    .limit(1);
-
-  if (!memberships || memberships.length === 0) {
-    redirect("/onboarding");
-  }
-
-  const firmId = memberships[0].firm_id;
-  const firm = Array.isArray(memberships[0].firms) ? memberships[0].firms[0] : memberships[0].firms;
-  const accessState = await getFirmAccessState({
-    supabase,
-    firmId,
-  });
+  const firm = firmName ? { name: firmName } : null;
+  const accessState = await getFirmAccessState({ supabase, firmId });
 
   const [{ data: prospects }, { data: tasks }, { data: outreachEvents }, { data: mailboxEvents }, { data: calendarEvents }] =
     await Promise.all([

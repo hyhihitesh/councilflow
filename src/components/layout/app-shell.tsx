@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { 
   LayoutDashboard, 
@@ -20,6 +21,12 @@ import {
 } from "lucide-react";
 
 import { CommandPalette } from "./command-palette";
+import dynamic from "next/dynamic";
+
+const AgentSidebar = dynamic(
+  () => import("@/components/agent/agent-sidebar").then((m) => ({ default: m.AgentSidebar })),
+  { ssr: false }
+);
 
 type AppShellProps = {
   title: string;
@@ -74,6 +81,7 @@ export function AppShell({
 }: AppShellProps) {
   const readOnly = billingAccessState === "read_only";
   const grace = billingAccessState === "grace";
+  const [isAgentOpen, setIsAgentOpen] = useState(false);
   const primaryCta = mobileCta ?? {
     href: "/dashboard",
     label: "View Dashboard",
@@ -143,7 +151,7 @@ export function AppShell({
                   <Zap className="w-3 h-3 text-[#B79455]" />
                   <span className="text-xs font-medium uppercase tracking-tight text-[#2C2A26]">Enterprise Pro</span>
                 </div>
-                <Link href="/checkout?plan=pro" className="inline-flex items-center justify-center w-full px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded-sm hover:bg-[#4A4742] transition-colors shadow-sm uppercase tracking-widest">
+                <Link href="/portal" className="inline-flex items-center justify-center w-full px-4 py-2 bg-[#2C2A26] text-[#F7F6F2] text-[10px] font-medium rounded-sm hover:bg-[#4A4742] transition-colors shadow-sm uppercase tracking-widest">
                   Manage Plan
                 </Link>
               </div>
@@ -193,7 +201,19 @@ export function AppShell({
               </nav>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              {/* AI Agent Toggle */}
+              <button
+                onClick={() => setIsAgentOpen((prev) => !prev)}
+                aria-label="Toggle AI Agent"
+                className={`w-9 h-9 flex items-center justify-center rounded-sm border transition-all ${
+                  isAgentOpen
+                    ? "bg-[#2C2A26] text-[#F7F6F2] border-[#2C2A26]"
+                    : "border-[#EBE8E0] text-[#A19D94] hover:text-[#2C2A26] hover:border-[#D5D1C6] hover:bg-[#F7F6F2]"
+                }`}
+              >
+                <Zap className="w-4 h-4" />
+              </button>
               {/* Quick Actions */}
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger asChild>
@@ -345,6 +365,7 @@ export function AppShell({
         </Link>
       </div>
       <CommandPalette />
+      <AgentSidebar isOpen={isAgentOpen} onClose={() => setIsAgentOpen(false)} />
     </div>
   );
 }

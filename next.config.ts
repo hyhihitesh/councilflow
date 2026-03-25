@@ -40,8 +40,12 @@ function loadMonorepoEnv() {
 
 loadMonorepoEnv();
 
+import withBundleAnalyzer from "@next/bundle-analyzer";
+
 const nextConfig: NextConfig = {
   /* config options here */
 };
 
-export default nextConfig;
+// Run `ANALYZE=true npm run build` to open the bundle visualizer
+export default withBundleAnalyzer({ enabled: process.env.ANALYZE === "true" })(nextConfig);
+

@@ -1,3 +1,4 @@
+import "server-only";
 import { completeAgentRun, startAgentRun } from "@/lib/agent/audit";
 import {
   buildResearchRunSummary,

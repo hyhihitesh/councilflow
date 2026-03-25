@@ -1,3 +1,4 @@
+export const maxDuration = 60; // Research runs can take up to 60s
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

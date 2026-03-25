@@ -1,3 +1,4 @@
+import "server-only";
 import { fetchWithRetry } from "./http";
 
 export type ExaSignal = {

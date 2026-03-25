@@ -7,6 +7,8 @@ import { getFirmAccessState, isBillingEnforcementEnabled } from "@/lib/billing/e
 import { getBillingPlanLabelByProductId } from "@/lib/billing/plans";
 import { createClient } from "@/lib/supabase/server";
 
+import { Zap, CreditCard } from "lucide-react";
+
 type SearchParams = {
   error?: string;
   message?: string;
@@ -136,38 +138,51 @@ export default async function SettingsPage({
           <article className="bg-[#FDFCFB] border border-[#EBE8E0] p-8 shadow-sm rounded-sm">
             <h2 className="text-xl font-light tracking-tight text-[#2C2A26]">Integrations</h2>
             <div className="mt-6 grid gap-4 text-sm">
-              <div className="rounded border border-[#EBE8E0] bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Google</p>
-                <p className={googleConnected ? "mt-1 font-medium text-emerald-700" : "mt-1 font-medium text-amber-700"}>
-                  {googleConnected ? "Connected" : "Not connected"}
+              <div className="rounded border border-[#EBE8E0] bg-white px-5 py-4 shadow-sm group hover:border-[#D5D1C6] transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Google Workspace</p>
+                  <span className={googleConnected ? "px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] uppercase tracking-widest font-bold rounded" : "px-2 py-0.5 bg-amber-50 text-amber-700 text-[9px] uppercase tracking-widest font-bold rounded"}>
+                    {googleConnected ? "Active" : "Coming Soon"}
+                  </span>
+                </div>
+                <p className="text-[#716E68] text-[12px] leading-relaxed">
+                  {googleConnected 
+                    ? "Sync calendar events and outreach via Gmail." 
+                    : "Intelligent Gmail drafting and Calendar synchronization."}
                 </p>
-                {!googleConnected ? (
-                  <button
-                    disabled
-                    className="mt-3 px-3 py-1.5 border border-[#EBE8E0] text-[#A19D94] bg-[#F7F6F2] text-[10px] font-medium rounded uppercase tracking-wider cursor-not-allowed"
-                  >
-                    Connect Google (Coming Soon)
+                {!googleConnected && (
+                  <button className="mt-4 text-[10px] text-[#A19D94] hover:text-[#2C2A26] transition-colors uppercase tracking-widest font-medium border-b border-transparent hover:border-[#2C2A26] pb-0.5">
+                    Request early access
                   </button>
-                ) : null}
+                )}
               </div>
-              <div className="rounded border border-[#EBE8E0] bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Microsoft</p>
-                <p className={microsoftConnected ? "mt-1 font-medium text-emerald-700" : "mt-1 font-medium text-amber-700"}>
-                  {microsoftConnected ? "Connected" : "Not connected"}
+
+              <div className="rounded border border-[#EBE8E0] bg-white px-5 py-4 shadow-sm group hover:border-[#D5D1C6] transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Microsoft 365</p>
+                  <span className={microsoftConnected ? "px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] uppercase tracking-widest font-bold rounded" : "px-2 py-0.5 bg-blue-50 text-blue-700 text-[9px] uppercase tracking-widest font-bold rounded"}>
+                    {microsoftConnected ? "Active" : "Roadmap"}
+                  </span>
+                </div>
+                <p className="text-[#716E68] text-[12px] leading-relaxed">
+                   Outlook integration for enterprise email and scheduling.
                 </p>
-                {!microsoftConnected ? (
-                  <button
-                    disabled
-                    className="mt-3 px-3 py-1.5 border border-[#EBE8E0] text-[#A19D94] bg-[#F7F6F2] text-[10px] font-medium rounded uppercase tracking-wider cursor-not-allowed"
-                  >
-                    Connect Microsoft (Coming Soon)
+                {!microsoftConnected && (
+                  <button className="mt-4 text-[10px] text-[#A19D94] hover:text-[#2C2A26] transition-colors uppercase tracking-widest font-medium border-b border-transparent hover:border-[#2C2A26] pb-0.5">
+                    Notify me on release
                   </button>
-                ) : null}
+                )}
               </div>
-              <div className="rounded border border-[#EBE8E0] bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Calendar sync</p>
-                <p className="mt-1 font-medium text-emerald-700">Google: active</p>
-                <p className="mt-1 font-medium text-amber-700">Outlook: deferred in this release</p>
+
+              <div className="rounded border border-[#F7F6F2] bg-[#FDFCFB] px-5 py-4 border-dashed">
+                <p className="text-[10px] uppercase tracking-widest text-[#D5D1C6] font-medium mb-1">Calendar Sync Status</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#6B705C] animate-pulse"></div>
+                  <p className="text-[11px] font-medium text-[#6B705C] uppercase tracking-wider">Google: High Fidelity</p>
+                </div>
+                <p className="mt-2 text-[10px] text-[#A19D94] leading-relaxed italic">
+                  Outlook & iCal support scheduled for Q3 deployment.
+                </p>
               </div>
             </div>
           </article>
@@ -175,16 +190,20 @@ export default async function SettingsPage({
 
         <section className="mt-12 bg-transparent reveal-up">
           <div className="flex items-center justify-between border-b border-[#F7F6F2] pb-4 mb-6">
-            <h2 className="text-xl font-light tracking-tight text-[#2C2A26]">Billing (Polar)</h2>
+            <h2 className="text-xl font-light tracking-tight text-[#2C2A26] flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-[#A19D94]" />
+              Billing & Subscription
+            </h2>
           </div>
           <p className="text-sm text-[#716E68]">
-            Manage workspace subscription and owner-only billing actions.
+            Manage workspace subscription and owner-only billing actions via Polar.
           </p>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
+          <div className="mt-6 grid gap-4 md:grid-cols-4 stagger-children">
             <article className="rounded border border-[#EBE8E0] bg-white px-5 py-4 shadow-sm">
               <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Status</p>
-              <p className={billingIsActive ? "mt-2 font-medium text-emerald-700" : "mt-2 font-medium text-amber-700"}>
+              <p className={billingIsActive ? "mt-2 font-medium text-emerald-700 flex items-center gap-2" : "mt-2 font-medium text-amber-700"}>
+                {billingIsActive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>}
                 {billingStatus ?? "inactive"}
               </p>
             </article>
@@ -198,13 +217,7 @@ export default async function SettingsPage({
             </article>
             <article className="rounded border border-[#EBE8E0] bg-white px-5 py-4 shadow-sm">
               <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Auto-renew</p>
-              <p className="mt-2 text-sm text-[#716E68] font-medium">{billingCancelAtPeriodEnd ? "Cancels at period end" : "On"}</p>
-            </article>
-            <article className="rounded border border-[#EBE8E0] bg-white px-5 py-4 shadow-sm">
-              <p className="text-[10px] uppercase tracking-widest text-[#A19D94] font-medium">Enforcement</p>
-              <p className="mt-2 text-sm text-[#716E68] font-medium">
-                {isBillingEnforcementEnabled() ? "Enforced" : "Bypassed (env override)"}
-              </p>
+              <p className="mt-2 text-sm text-[#716E68] font-medium">{billingCancelAtPeriodEnd ? "Off" : "On"}</p>
             </article>
           </div>
 
@@ -213,16 +226,20 @@ export default async function SettingsPage({
               <>
                 <Link
                   href="/portal"
-                  className="px-6 py-3 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50 transition-all uppercase tracking-wider shadow-sm"
+                  className="px-6 py-3 bg-[#2C2A26] text-[#F7F6F2] text-[11px] font-medium rounded hover:bg-[#4A4742] transition-colors shadow-sm uppercase tracking-widest flex items-center gap-2"
                 >
-                  Open billing portal
+                  <CreditCard className="w-3.5 h-3.5" />
+                  Manage in billing portal
                 </Link>
-                <Link
-                  href="/checkout?plan=pro"
-                  className="px-6 py-3 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 transition-all uppercase tracking-wider shadow-sm"
-                >
-                  Open checkout
-                </Link>
+                {!billingIsActive && (
+                  <Link
+                    href="/checkout?plan=pro"
+                    className="px-6 py-3 border border-[#EBE8E0] text-[#716E68] text-[11px] font-medium rounded hover:text-[#2C2A26] hover:bg-white transition-all uppercase tracking-wider shadow-sm flex items-center gap-2"
+                  >
+                    <Zap className="w-3.5 h-3.5" />
+                    Upgrade workspace
+                  </Link>
+                )}
               </>
             ) : (
               <span className="px-6 py-3 border border-[#EBE8E0] bg-[#FDFCFB] text-[#A19D94] text-[11px] font-medium rounded uppercase tracking-wider cursor-not-allowed">

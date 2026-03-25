@@ -33,6 +33,7 @@ yarn-error.log*
 .devserver*.pid
 dev-capture.log
 temp-signin.html
+ts-errors.txt
 
 # env files (can opt-in for committing if needed)
 .env*

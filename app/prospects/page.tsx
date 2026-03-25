@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { getFirmAccessState } from "@/lib/billing/entitlements";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 type SearchParams = {
   error?: string;
@@ -19,32 +18,10 @@ export default async function ProspectsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  const supabase = await createClient();
+  const { supabase, user, firmId, firmName } = await requireAuth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/auth/sign-in");
-  }
-
-  const { data: memberships } = await supabase
-    .from("firm_memberships")
-    .select("firm_id, role, firms(name)")
-    .eq("user_id", user.id)
-    .limit(1);
-
-  if (!memberships || memberships.length === 0) {
-    redirect("/onboarding");
-  }
-
-  const primary = memberships[0];
-  const firm = Array.isArray(primary.firms) ? primary.firms[0] : primary.firms;
-  const accessState = await getFirmAccessState({
-    supabase,
-    firmId: primary.firm_id,
-  });
+  const firm = firmName ? { name: firmName } : null;
+  const accessState = await getFirmAccessState({ supabase, firmId });
 
   const searchQuery = params.q?.trim() ?? "";
   const statusFilter = params.status?.trim().toLowerCase() ?? "all";
@@ -56,7 +33,7 @@ export default async function ProspectsPage({
     .select(
       "id, company_name, domain, status, fit_score, score_explanation, primary_contact_name, primary_contact_title, primary_contact_email, created_at",
     )
-    .eq("firm_id", primary.firm_id);
+    .eq("firm_id", firmId);
 
   if (searchQuery) {
     prospectsQuery = prospectsQuery.or(
